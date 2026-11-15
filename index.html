@@ -58,9 +58,14 @@ input[type=range]::-moz-range-thumb{width:14px;height:16px;border:0;border-radiu
 .view{padding:7px 14px;border:1px solid var(--line);color:var(--mute);letter-spacing:.14em;transition:color .15s,border-color .15s}
 .view:hover{color:var(--paper)}
 .view[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-hi)}
-.whip{padding:7px 18px;border:1px solid var(--gold);background:var(--gold);color:var(--ink);font-weight:700;letter-spacing:.14em;transition:background .15s,transform .08s}
-.whip:hover{background:var(--gold-hi)}
-.whip:active{transform:translateY(1px) scale(.97)}
+.whips{display:flex;border:1px solid var(--gold)}
+.whips button{display:flex;align-items:center;gap:7px;padding:7px 14px;background:var(--gold);color:var(--ink);font-weight:700;letter-spacing:.14em;transition:background .15s,transform .08s}
+.whips button + button{border-left:1px solid var(--ink)}
+.whips button:hover{background:var(--gold-hi)}
+.whips button:active{transform:translateY(1px)}
+.whips svg{width:7px;height:10px;flex:none;fill:currentColor}
+.spin{width:30px;height:20px;flex:none;fill:none;stroke:var(--gold-hi);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s}
+.spin .head{fill:var(--gold-hi);stroke:none}
 #fallback{position:absolute;inset:0;margin:auto;height:max-content;max-width:26em;padding:0 20px;text-align:center;color:var(--mute)}
 .no-ui .mast,.no-ui .foot{display:none}
 @media (max-width:520px){
@@ -71,7 +76,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:16px;border:0;border-radiu
 </head>
 <body>
 <div id="stage">
-  <canvas id="gl" aria-label="由 Gen.G 队徽旋转而成的三维陀螺，正在自转；在陀螺上快速划过可以抽鞭加速"></canvas>
+  <canvas id="gl" aria-label="由 Gen.G 队徽旋转而成的三维陀螺，正在自转；在陀螺上向左或向右快速划过可以抽鞭，顺着转向加速，逆着转向减速或反转"></canvas>
   <canvas id="fx" aria-hidden="true"></canvas>
 
   <div class="mast">
@@ -86,7 +91,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:16px;border:0;border-radiu
       </div>
     </div>
     <div class="aside">
-      <p class="credits">在陀螺上快速划过，抽它一鞭<br>拖底盘换视角 · 滚轮缩放<br>粉丝自制 · 非官方</p>
+      <p class="credits">甩鞭：顺转向加速，逆向减速<br>拖底盘换视角 · 滚轮缩放<br>粉丝自制 · 非官方</p>
       <button type="button" class="snd" id="snd" aria-pressed="true">声音 开</button>
     </div>
   </div>
@@ -95,9 +100,13 @@ input[type=range]::-moz-range-thumb{width:14px;height:16px;border:0;border-radiu
     <div class="dock">
       <label class="speed" for="speed">
         <input type="range" id="speed" min="0" max="100" step="1" value="25" aria-label="巡航转速">
+        <svg class="spin" id="dir" viewBox="0 0 30 20" aria-hidden="true"><path d="M19.5 13.9C24.5 13 28 11 28 8.6 28 5.5 22.2 3 15 3S2 5.5 2 8.6c0 2.5 3.8 4.6 9 5.4"/><path class="head" d="M11 10.4l7 4-7 4z"/></svg>
         <span class="rps" id="rps" aria-hidden="true"></span>
       </label>
-      <button type="button" class="whip" id="whip" title="也可以按空格键">抽一鞭</button>
+      <div class="whips" role="group" aria-label="抽一鞭">
+        <button type="button" id="whipL" aria-label="向左抽一鞭" title="也可以按 ← 键"><svg viewBox="0 0 8 10" aria-hidden="true"><path d="M8 0L0 5l8 5z"/></svg>抽</button>
+        <button type="button" id="whipR" aria-label="向右抽一鞭" title="也可以按 → 键">抽<svg viewBox="0 0 8 10" aria-hidden="true"><path d="M0 0l8 5-8 5z"/></svg></button>
+      </div>
       <button type="button" class="view" id="side" aria-pressed="false">正侧面</button>
     </div>
   </div>
@@ -321,11 +330,11 @@ var floor = new T3.Mesh(new T3.CircleGeometry(12, 96), new T3.ShaderMaterial({
     uBg: { value: new T3.Color(0x0a0907).convertSRGBToLinear() },
     uPool: { value: new T3.Color(0x3b3221).convertSRGBToLinear() },
     uGold: { value: new T3.Color(0xaa8b30).convertSRGBToLinear() },
-    uGlow: { value: 0 }
+    uGlow: { value: 0 }, uPhase: { value: 0 }, uDir: { value: 1 }, uSpeed: { value: 0 }
   },
   vertexShader: 'varying vec2 vP;\nvoid main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
   fragmentShader: [
-    'uniform vec3 uBg, uPool, uGold; uniform float uGlow; varying vec2 vP;',
+    'uniform vec3 uBg, uPool, uGold; uniform float uGlow, uPhase, uDir, uSpeed; varying vec2 vP;',
     'void main(){',
     '  float r = length(vP);',
     '  vec3 col = uBg + uPool * exp(-r * r / 5.0);',
@@ -338,8 +347,9 @@ var floor = new T3.Mesh(new T3.CircleGeometry(12, 96), new T3.ShaderMaterial({
     '  float d2 = abs(mod(ang + s2 * 0.5, s2) - s2 * 0.5) * r;',
     '  float t1 = (1.0 - smoothstep(0.004, 0.004 + aa, d1)) * step(1.78, r) * step(r, 1.86);',
     '  float t2 = (1.0 - smoothstep(0.007, 0.007 + aa, d2)) * step(1.78, r) * step(r, 2.0);',
-    '  col += uGold * (ring * 0.5 + t1 * 0.4 + t2 * 0.9) * exp(-r * r / 14.0) * (1.0 + 1.6 * uGlow);',
-    '  col += uGold * 0.16 * uGlow * exp(-(r - 1.7) * (r - 1.7) / 0.012);',
+    '  float comet = exp(-mod((uPhase - ang) * uDir, 3.14159265) * 2.4) * uSpeed;',
+    '  col += uGold * (ring * (0.5 + 2.6 * comet) + t1 * 0.4 + t2 * 0.9) * exp(-r * r / 14.0) * (1.0 + 1.6 * uGlow);',
+    '  col += uGold * (0.16 * uGlow + 0.45 * comet) * exp(-(r - 1.7) * (r - 1.7) / 0.012);',
     '  gl_FragColor = vec4(col, 1.0);',
     '  #include <encodings_fragment>',
     '}'
@@ -364,7 +374,7 @@ var OMEGA_MAX = TAU * 8;
 function sliderToOmega(v) { return OMEGA_MAX * Math.pow(v / 100, 2.2); }
 
 var st = {
-  omega: 0, omegaT: 0, motor: 0, boost: 0, phi: 0, psi: 0, tau: 0, alignTo: null, alignT: 0.35, frozen: false,
+  omega: 0, omegaT: 0, motor: 0, boost: 0, dir: 1, ringPh: 0, phi: 0, psi: 0, tau: 0, alignTo: null, alignT: 0.35, frozen: false,
   nut: 0, nutPh: 0, slide: 0, slideV: 0, pulse: 0, t: 0,
   az: 0, azVel: 0, el: 13 * DEG, elT: null, zoom: 1, baseDist: 8
 };
@@ -450,16 +460,16 @@ function audioInit() {
     if (actx.state === 'suspended') actx.resume();
   } catch (err) { actx = null; }
 }
-function crack(s) {
+function crack(s, brake) {
   if (!soundOn || !actx || actx.state !== 'running') return;
   var t = actx.currentTime;
   var a = actx.createBufferSource(); a.buffer = noiseBuf; a.playbackRate.value = 1.4;
-  var hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2200;
+  var hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = brake ? 1300 : 2200;
   var g = actx.createGain();
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.45 + 0.5 * s, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
   a.connect(hp); hp.connect(g); g.connect(master); a.start(t, Math.random() * 0.5, 0.12);
   var o = actx.createOscillator(); o.type = 'triangle';
-  o.frequency.setValueAtTime(210, t); o.frequency.exponentialRampToValueAtTime(90, t + 0.09);
+  o.frequency.setValueAtTime(brake ? 150 : 210, t); o.frequency.exponentialRampToValueAtTime(brake ? 60 : 90, t + 0.09);
   var g2 = actx.createGain();
   g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(0.3 + 0.25 * s, t + 0.006); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
   o.connect(g2); g2.connect(master); o.start(t); o.stop(t + 0.16);
@@ -470,12 +480,23 @@ document.addEventListener('visibilitychange', function () {
 
 /* --- what a lash does to the top --- */
 var sparks = [], flashes = [];
-function leaveGlide() { if (st.alignTo !== null) { st.alignTo = null; st.motor = st.omega; st.boost = 0; } }
+function leaveGlide() {
+  if (st.alignTo === null) return;
+  st.alignTo = null;
+  if (Math.abs(st.omega) > 0.01) st.dir = st.omega < 0 ? -1 : 1;
+  st.motor = Math.abs(st.omega); st.boost = 0;
+}
+/* dir is the way the cord travels across the front of the top: +1 left to right, -1 right to left.
+   The front surface is dragged along with it, so the two directions spin the top opposite ways:
+   a lash along the spin speeds it up, a lash against it brakes it and can knock it into reverse. */
 function hit(s, dir, x, y) {
   rope.lastHit = st.t; rope.lastDir = dir; rope.hits++;
   leaveGlide();
-  var room = 1 - Math.pow(Math.min(1, st.omega / OMEGA_MAX), 2);
-  st.boost = Math.max(0, Math.min(OMEGA_MAX - st.motor, st.boost + (2.6 + 6.4 * s) * Math.max(0.05, room)));
+  var w = st.dir * st.motor + st.boost, brake = w * dir < -0.5;
+  var gain = (2.6 + 6.4 * s) * (w * dir > 0 ? Math.max(0.05, 1 - Math.pow(Math.min(1, Math.abs(w) / OMEGA_MAX), 2)) : 1);
+  w = Math.max(-OMEGA_MAX, Math.min(OMEGA_MAX, w + dir * gain));
+  if (w * st.dir < 0) { st.dir = -st.dir; st.motor = Math.min(st.motor, Math.abs(w)); }     /* into reverse: the motor follows */
+  st.boost = w - st.dir * st.motor; st.omega = w;
   if (!reduceMotion) {
     st.nut = Math.min(4 * DEG, st.nut + (0.9 + 1.8 * s) * DEG); st.nutPh = dir > 0 ? 0 : Math.PI;
     st.slideV += dir * (0.5 + 0.8 * s);
@@ -484,10 +505,10 @@ function hit(s, dir, x, y) {
   var n = Math.round(9 + 13 * s);
   for (var i = 0; i < n; i++) {
     var a = (dir > 0 ? 0 : Math.PI) + (Math.random() - 0.5) * 1.7 - dir * 0.25, sp = (240 + 760 * Math.random()) * (0.6 + 0.7 * s);
-    sparks.push({ x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 120, life: 0, max: 0.22 + Math.random() * 0.3 });
+    sparks.push({ x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 120, life: 0, max: 0.22 + Math.random() * 0.3, cool: brake });
   }
   flashes.push({ x: x, y: y, life: 0, max: 0.13, r: 26 + 46 * s });
-  crack(s);
+  crack(s, brake);
 }
 
 /* --- the rope: a Verlet chain hanging from the tip of the stick --- */
@@ -495,7 +516,7 @@ var RN = 22;
 var rope = {
   x: new Float32Array(RN), y: new Float32Array(RN), ox: new Float32Array(RN), oy: new Float32Array(RN),
   on: false, held: false, alpha: 0, len: 300, seg: 14, stick: 48, hx: 0, hy: 0, tx: 0, ty: 0, ang: -1.05,
-  inside: false, lastHit: -9, lastDir: 0, tip: 0, auto: null, hits: 0
+  inside: false, lastHit: -9, lastDir: 0, tip: 0, auto: null, hits: 0, hv: 0
 };
 function ropeStart(x, y, trail) {
   rope.len = Math.min(420, Math.max(130, sil.w * 0.72)); rope.seg = rope.len / (RN - 1);
@@ -507,10 +528,11 @@ function ropeStart(x, y, trail) {
     rope.x[i] = rope.ox[i] = tx + trail * i * rope.seg * 0.8;
     rope.y[i] = rope.oy[i] = ty + i * rope.seg * 0.6;
   }
-  rope.on = rope.held = true; rope.alpha = 1; rope.inside = false; rope.hits = 0; rope.auto = null;
+  rope.on = rope.held = true; rope.alpha = 1; rope.inside = false; rope.hits = 0; rope.auto = null; rope.hv = 0;
 }
 function ropeStep(dt) {
   var nx = rope.tx, ny = rope.ty, vx = (nx - rope.hx) / dt, vy = (ny - rope.hy) / dt;
+  rope.hv += (vx - rope.hv) * (1 - Math.exp(-dt / 0.12));      /* which way the hand has been driving the whip lately */
   if (Math.abs(vx) + Math.abs(vy) > 60) {           /* the stick swings toward where the hand is going */
     var da = Math.atan2(vy * 0.6 - 520, vx) - rope.ang;
     rope.ang += Math.atan2(Math.sin(da), Math.cos(da)) * (1 - Math.exp(-dt / 0.08));
@@ -547,17 +569,18 @@ function ropeStep(dt) {
   rope.tip += (Math.sqrt(tvx * tvx + tvy * tvy) / h / rope.len - rope.tip) * 0.4;
   if (any) {
     var vn = Math.abs(best) / sil.w, dir = best > 0 ? 1 : -1;
-    if (vn > 1.5 && st.t - rope.lastHit > 0.16 && (!rope.inside || dir !== rope.lastDir || st.t - rope.lastHit > 0.5))
+    /* only a lash the hand is driving counts; the cord swinging back on its own does not */
+    if (vn > 1.5 && dir * rope.hv > 0.35 * sil.w && st.t - rope.lastHit > 0.16 && (!rope.inside || dir !== rope.lastDir || st.t - rope.lastHit > 0.5))
       hit(Math.pow(Math.min(1, (vn - 1.5) / 7.5), 0.7), dir, bx, by);
   }
   rope.inside = any;
 }
-/* a lash thrown for the visitor: the button, the space bar, and one demonstration after the page opens */
-var autoDir = 1;
-function autoLash() {
+/* a lash thrown for the visitor: the two buttons, the arrow keys, the space bar, and one demonstration after the page opens */
+function autoLash(d) {
   if (rope.on && rope.held && !rope.auto) return;   /* the visitor is holding the whip */
   if (rope.auto && !rope.hits) hit(0.6, rope.auto.x1 > rope.auto.x0 ? 1 : -1, sil.cx, (sil.yTop + sil.yShoulder) / 2);
-  var y = (sil.yTop + sil.yShoulder) / 2 + Math.min(64, Math.max(34, sil.w * 0.16)) * 0.7, d = autoDir; autoDir = -autoDir;   /* cord, not stick, crosses mid-body */
+  d = d || st.dir;                                  /* no direction given: lash the way it is already turning */
+  var y = (sil.yTop + sil.yShoulder) / 2 + Math.min(64, Math.max(34, sil.w * 0.16)) * 0.7;   /* cord, not stick, crosses mid-body */
   var x0 = d > 0 ? sil.x0 - sil.w * 0.5 : sil.x1 + sil.w * 0.5, x1 = d > 0 ? sil.x1 + sil.w * 0.3 : sil.x0 - sil.w * 0.3;
   ropeStart(x0, y, -d);
   rope.auto = { t: 0, dur: 0.26, x0: x0, y0: y, x1: x1, y1: y + sil.h * 0.05, lift: sil.h * 0.06 };
@@ -625,7 +648,7 @@ function drawFx() {
   for (i = 0; i < sparks.length; i++) {
     var s = sparks[i], k = 1 - s.life / s.max;
     ctx.globalAlpha = k;
-    stroke(s.x, s.y, s.x - s.vx * 0.02, s.y - s.vy * 0.02, 'rgb(255,' + Math.round(170 + 70 * k) + ',' + Math.round(70 + 120 * k) + ')', 1.2 + 1.2 * k);
+    stroke(s.x, s.y, s.x - s.vx * 0.02, s.y - s.vy * 0.02, s.cool ? 'rgb(' + Math.round(165 + 60 * k) + ',' + Math.round(205 + 40 * k) + ',255)' : 'rgb(255,' + Math.round(170 + 70 * k) + ',' + Math.round(70 + 120 * k) + ')', 1.2 + 1.2 * k);
   }
   for (i = 0; i < flashes.length; i++) {
     var fl = flashes[i], q1 = 1 - fl.life / fl.max, r = fl.r * (0.55 + 0.75 * (1 - q1));
@@ -647,13 +670,15 @@ $('side').addEventListener('click', function () {
   $('side').setAttribute('aria-pressed', String(on));
 });
 
-$('whip').addEventListener('click', function () { userActed = true; audioInit(); autoLash(); });
+$('whipL').addEventListener('click', function () { userActed = true; audioInit(); autoLash(-1); });
+$('whipR').addEventListener('click', function () { userActed = true; audioInit(); autoLash(1); });
 $('snd').addEventListener('click', function () { setSound(!soundOn); if (soundOn) audioInit(); });
 window.addEventListener('keydown', function (e) {
-  if (e.code !== 'Space' || e.repeat) return;
+  var d = e.code === 'ArrowRight' ? 1 : e.code === 'ArrowLeft' ? -1 : e.code === 'Space' ? 0 : null;
+  if (d === null || e.repeat || e.altKey || e.ctrlKey || e.metaKey) return;
   var tag = e.target && e.target.tagName;
-  if (tag === 'BUTTON' || tag === 'INPUT') return;
-  e.preventDefault(); userActed = true; audioInit(); autoLash();
+  if (tag === 'INPUT' || (tag === 'BUTTON' && d === 0)) return;     /* the slider keeps its arrows, a focused button its space bar */
+  e.preventDefault(); userActed = true; audioInit(); autoLash(d);
 });
 
 /* Pointer: press on the top (or beside its body) and you are holding the whip; press anywhere else and you turn the view. */
@@ -768,28 +793,35 @@ function step(dt) {
     if (st.alignTo !== null) {
       /* coming to rest: glide to the nearest pose where a plate squarely faces the viewer */
       st.phi += (st.alignTo - st.phi) * (1 - Math.exp(-dt / st.alignT));
-      st.omega = Math.abs(st.alignTo - st.phi) / st.alignT;
+      st.omega = (st.alignTo - st.phi) / st.alignT;
     } else {
-      /* the slider is a motor holding a cruising speed; each lash adds a boost that friction wears away */
+      /* the slider is a motor holding a cruising speed in whichever direction the top is turning;
+         a lash adds or takes away spin, and friction wears that difference off */
       st.motor += (st.omegaT - st.motor) * (1 - Math.exp(-dt / 0.45));
-      if (st.boost > 0) st.boost = Math.max(0, st.boost - (0.25 * st.boost + 0.5) * dt);
-      st.omega = st.motor + st.boost;
+      if (st.boost !== 0) {
+        var left = Math.abs(st.boost) - (0.25 * Math.abs(st.boost) + 0.5) * dt;
+        st.boost = left > 0 ? (st.boost > 0 ? left : -left) : 0;
+      }
+      st.omega = st.dir * st.motor + st.boost;
       st.phi += st.omega * dt;
-      if (st.omegaT === 0 && st.omega < 1.2) {
-        st.alignTo = Math.round((st.phi + st.omega * 0.45 + st.az) / HALF_PI) * HALF_PI - st.az;
-        if (st.alignTo < st.phi && st.omega > 0.3) st.alignTo += HALF_PI;
-        st.alignT = st.omega > 0.3 ? Math.min(1.2, Math.max(0.25, (st.alignTo - st.phi) / st.omega)) : 0.35;
+      if (st.omegaT === 0 && Math.abs(st.omega) < 1.2) {
+        var way = st.omega < 0 ? -1 : 1, slow = Math.abs(st.omega);
+        st.alignTo = Math.round((st.phi + way * slow * 0.45 + st.az) / HALF_PI) * HALF_PI - st.az;
+        if ((st.alignTo - st.phi) * way < 0 && slow > 0.3) st.alignTo += way * HALF_PI;
+        st.alignT = slow > 0.3 ? Math.min(1.2, Math.max(0.25, Math.abs(st.alignTo - st.phi) / slow)) : 0.35;
+        if (slow > 0.01) st.dir = way;
         st.motor = st.boost = 0;
       }
     }
   }
 
   /* gentle precession: a little lean at low speed, almost upright when fast */
-  var wob = (reduceMotion || st.frozen) ? 0 : 2.0 * DEG * (st.omega / (st.omega + 1.5)) / (1 + st.omega / 14);
+  var av = Math.abs(st.omega), sg = av > 0.02 ? (st.omega < 0 ? -1 : 1) : st.dir;
+  var wob = (reduceMotion || st.frozen) ? 0 : 2.0 * DEG * (av / (av + 1.5)) / (1 + av / 14);
   st.tau += (wob - st.tau) * (1 - Math.exp(-dt * 3));
-  st.psi += dt * (0.35 + 1.6 / (1 + st.omega / 6));
+  st.psi += sg * dt * (0.35 + 1.6 / (1 + av / 6));
   /* a lash also knocks the top: a quick nutation and a small shove that springs back */
-  st.nut *= Math.exp(-dt / 0.5); st.nutPh += dt * (14 + 0.2 * st.omega);
+  st.nut *= Math.exp(-dt / 0.5); st.nutPh += sg * dt * (14 + 0.2 * av);
   st.slideV += (-130 * st.slide - 14 * st.slideV) * dt; st.slide += st.slideV * dt;
   var ca = Math.cos(st.az), sa = Math.sin(st.az), nx = st.nut * Math.cos(st.nutPh), nz = st.nut * Math.sin(st.nutPh);
   axisDir.set(Math.sin(st.tau) * Math.cos(st.psi) + nx * ca - nz * sa, 1, Math.sin(st.tau) * Math.sin(st.psi) + nx * sa + nz * ca).normalize();
@@ -804,27 +836,32 @@ function step(dt) {
   camera.position.set(0, TARGET.y + dist * Math.sin(st.el), dist * Math.cos(st.el));
   camera.lookAt(TARGET);
   camera.updateMatrixWorld(); updateSilhouette();
-  floor.material.uniforms.uGlow.value = 0.45 * Math.min(1, st.omega / OMEGA_MAX) + st.pulse;
+  var fu = floor.material.uniforms;
+  st.ringPh = (st.ringPh + sg * dt * (0.8 + 5 * Math.pow(Math.min(1, av / OMEGA_MAX), 0.6))) % TAU;
+  fu.uGlow.value = 0.45 * Math.min(1, av / OMEGA_MAX) + st.pulse;
+  fu.uPhase.value = st.ringPh; fu.uDir.value = sg; fu.uSpeed.value = Math.min(1, av / 2);
   return phiFrom;
 }
 
 function tick(dt) { var phiFrom = step(dt); fxStep(dt); return phiFrom; }
 
-var last = 0, t0 = 0, demoDone = false, gaugeV = -1, gaugeTxt = '';
+var last = 0, t0 = 0, demoDone = false, gaugeV = -1, gaugeTxt = '', gaugeDir = '';
 function frame(now) {
   requestAnimationFrame(frame);
   var dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016); last = now;
   if (!t0) t0 = now;
   if (!demoDone && now - t0 > 1700) {               /* show once what the whip does, unless the visitor got there first */
     demoDone = true;
-    if (!userActed && !reduceMotion && !st.frozen && q.get('demo') !== '0') autoLash();
+    if (!userActed && !reduceMotion && !st.frozen && q.get('demo') !== '0') autoLash(1);
   }
   var phiFrom = tick(dt);
   draw(phiFrom, st.phi);
   drawFx();
-  /* speedometer: track fill and readout follow the actual speed */
-  var v = Math.round(1000 * Math.pow(Math.min(1, st.omega / OMEGA_MAX), 1 / 2.2)) / 10, rps = st.omega / TAU;
+  /* speedometer: track fill and readout follow the actual speed, the little orbit icon shows which way it turns */
+  var av = Math.abs(st.omega), v = Math.round(1000 * Math.pow(Math.min(1, av / OMEGA_MAX), 1 / 2.2)) / 10, rps = av / TAU;
   var txt = rps < 0.02 ? '停' : (rps < 1 ? rps.toFixed(2) : rps.toFixed(1)) + ' 圈/秒';
+  var ds = (rps < 0.02 ? 'x' : 'o') + ((rps < 0.02 ? st.dir : st.omega) < 0 ? 'L' : 'R');
+  if (ds !== gaugeDir) { gaugeDir = ds; $('dir').style.transform = ds.charAt(1) === 'L' ? 'scaleX(-1)' : ''; $('dir').style.opacity = ds.charAt(0) === 'x' ? 0.35 : 1; }
   if (v !== gaugeV) { gaugeV = v; $('speed').style.setProperty('--live', v + '%'); }
   if (txt !== gaugeTxt) { gaugeTxt = txt; $('rps').textContent = txt; }
 }
@@ -837,9 +874,10 @@ st.phi = -st.az;                        /* first frame: a plate squarely faces t
 if (q.get('phi') !== null) { st.frozen = true; st.phi = qn('phi', 0) * DEG - st.az; }
 setSound(soundOn);
 tick(1e-3);                                         /* places the camera and measures the silhouette */
-/* test hooks: ?hits=N lands N lashes, ?auto=1 throws a lash, ?ff=N fast-forwards N frames, ?debug=1 exposes the state */
-for (i = qn('hits', 0); i > 0; i--) hit(0.8, 1, sil.cx, sil.cy);
-if (q.get('auto') === '1') { demoDone = true; autoLash(); }
+/* test hooks: ?hits=N lands N lashes, ?auto=1 throws one, ?ff=N fast-forwards N frames, ?debug=1 exposes the state */
+var nHits = qn('hits', 0), nAuto = qn('auto', 0);    /* negative values lash to the left */
+for (i = Math.abs(nHits); i > 0; i--) hit(0.8, nHits < 0 ? -1 : 1, sil.cx, sil.cy);
+if (nAuto) { demoDone = true; autoLash(nAuto < 0 ? -1 : 1); }
 for (i = qn('ff', 0); i > 0; i--) tick(1 / 60);
 if (q.get('debug') === '1') window.__top = { tick: tick, st: st, rope: rope, sil: sil, zoneAt: zoneAt };
 $('side').setAttribute('aria-pressed', String(Math.abs(st.el) < 0.012));
