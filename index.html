@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>GEN.G 陀螺</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&display=swap">
+<style>
+/* Layout: one full-bleed stage. Masthead top-left, small credits top-right, caption + control dock bottom-centre. */
+:root{
+  color-scheme:dark;
+  --ink:#0a0907;            /* stage black, warm */
+  --panel:rgba(21,18,12,.84);
+  --line:#3a3120;           /* hairlines */
+  --gold:#aa8b30;           /* Gen.G gold */
+  --gold-hi:#e6c96e;        /* lit gold */
+  --paper:#f2ebd9;          /* text */
+  --mute:#a2977b;           /* secondary text */
+  --display:"Chakra Petch","PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  --body:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--body);font-size:14px;line-height:1.5;overflow:hidden;-webkit-font-smoothing:antialiased}
+#stage{position:relative;height:100%;overflow:hidden;-webkit-user-select:none;user-select:none}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#gl:active{cursor:grabbing}
+
+.mast{position:absolute;inset:0 0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+  padding-block:18px 0;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));pointer-events:none}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand svg{width:34px;height:auto;flex:none}
+h1{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(20px,2.6vw,28px);letter-spacing:.06em;line-height:1.1;white-space:nowrap}
+h1 b{font-family:var(--body);font-weight:700;color:var(--gold-hi);letter-spacing:.12em;margin-left:.2em}
+.brand p{margin:3px 0 0;font-size:12px;color:var(--mute);letter-spacing:.1em}
+.credits{margin:3px 0 0;text-align:right;font-size:11px;line-height:1.75;color:var(--mute);letter-spacing:.08em}
+
+.foot{position:absolute;inset:auto 0 0;display:flex;flex-direction:column;align-items:center;gap:12px;
+  padding-block:0 18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:none}
+.note{margin:0;max-width:31em;min-height:3em;display:flex;align-items:flex-end;text-align:center;text-wrap:balance;font-size:13px;color:var(--paper);text-shadow:0 0 10px var(--ink),0 0 2px var(--ink)}
+.dock{pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 18px;padding:10px 14px;
+  background:var(--panel);border:1px solid var(--line);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+button{font:inherit;color:inherit;background:none;border:0;margin:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
+.seg{display:flex;border:1px solid var(--line)}
+.seg button{padding:7px 16px;min-width:62px;color:var(--mute);letter-spacing:.14em;transition:background .15s,color .15s}
+.seg button + button{border-left:1px solid var(--line)}
+.seg button:hover{color:var(--paper)}
+.seg button[aria-pressed="true"]{background:var(--gold);color:var(--ink);font-weight:700}
+.speed{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:12px;letter-spacing:.14em}
+.speed output{font-family:var(--display);font-size:13px;letter-spacing:.04em;color:var(--paper);min-width:5.2em;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:clamp(110px,20vw,190px);height:24px;margin:0;background:none;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--gold) var(--fill,27%),var(--line) var(--fill,27%))}
+input[type=range]::-moz-range-track{height:2px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:2px;background:var(--gold)}
+/* slider thumb is the emblem's own outline: flat top, 45-degree point */
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:16px;margin-top:-7px;background:var(--gold-hi);clip-path:polygon(0 0,100% 0,100% 52%,50% 100%,0 52%)}
+input[type=range]::-moz-range-thumb{width:14px;height:16px;border:0;border-radius:0;background:var(--gold-hi);clip-path:polygon(0 0,100% 0,100% 52%,50% 100%,0 52%)}
+.view{padding:7px 14px;border:1px solid var(--line);color:var(--mute);letter-spacing:.14em;transition:color .15s,border-color .15s}
+.view:hover{color:var(--paper)}
+.view[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-hi)}
+#fallback{position:absolute;inset:0;margin:auto;height:max-content;max-width:26em;padding:0 20px;text-align:center;color:var(--mute)}
+.no-ui .mast,.no-ui .foot{display:none}
+@media (max-width:520px){
+  .credits{font-size:10px}
+  .brand svg{width:28px}
+  .note{font-size:12px}
+  .seg button{padding:7px 13px;min-width:54px}
+}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="gl" aria-label="由 Gen.G 队徽旋转而成的三维陀螺，正在自转"></canvas>
+
+  <div class="mast">
+    <div class="brand">
+      <svg viewBox="0.6 21.6 66.95 57.6" aria-hidden="true">
+        <path id="half" fill="#aa8b30" d="m1.83 22.321h28.684c0.27528 0 0.51385 0.22022 0.51385 0.51386v8.9374c0 0.27528-0.22022 0.51386-0.51385 0.51386h-18.737c-0.27528 0-0.51386 0.22022-0.51386 0.51386v12.424c0 0.12846 0.0551 0.25693 0.14682 0.36704l8.7906 8.8273c0.33033 0.33034 0.88089 0.09176 0.88089-0.36704v-8.4052c0-0.12846-0.0551-0.25693-0.14682-0.36704l-5.1752-5.2303c-0.31199-0.33034-0.0918-0.86254 0.36704-0.86254h14.388c0.27528 0 0.51385 0.23857 0.51385 0.51386v38.227c0 0.4588-0.55055 0.67902-0.88089 0.36704l-28.666-28.556c-0.0918-0.09176-0.14682-0.22022-0.14682-0.36704v-26.537c-0.0184-0.27528 0.22023-0.51386 0.49551-0.51386"/>
+        <use href="#half" transform="matrix(-1 0 0 1 68.1484 0)"/>
+      </svg>
+      <div>
+        <h1>GEN.G<b>陀螺</b></h1>
+        <p>队徽绕中轴转一圈</p>
+      </div>
+    </div>
+    <p class="credits">拖动换视角 · 滚轮缩放<br>粉丝自制 · 非官方</p>
+  </div>
+
+  <div class="foot" id="foot">
+    <p class="note" id="note"></p>
+    <div class="dock">
+      <div class="seg" role="group" aria-label="形态">
+        <button type="button" id="m-crystal" data-mode="crystal" aria-pressed="true">水晶</button>
+        <button type="button" id="m-gold" data-mode="gold" aria-pressed="false">纯金</button>
+        <button type="button" id="m-section" data-mode="section" aria-pressed="false">剖面</button>
+      </div>
+      <label class="speed" for="speed">转速
+        <input type="range" id="speed" min="0" max="100" step="1" value="27">
+        <output id="rps" for="speed"></output>
+      </label>
+      <button type="button" class="view" id="side" aria-pressed="false">正侧面</button>
+    </div>
+  </div>
+
+  <p id="fallback" hidden>这个页面需要 WebGL 才能显示三维陀螺。请换一个支持 WebGL 的浏览器，或者检查网络后刷新。</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+'use strict';
+document.documentElement.lang = 'zh-CN';
+var $ = function (id) { return document.getElementById(id); };
+var stageEl = $('stage'), canvas = $('gl');
+function fail() { $('fallback').hidden = false; $('foot').hidden = true; }
+if (!window.THREE) { fail(); return; }
+var T3 = THREE, renderer;
+try { renderer = new T3.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false, powerPreference: 'high-performance' }); }
+catch (err) { fail(); return; }
+
+var q = new URLSearchParams(location.search);
+function qn(k, d) { var v = parseFloat(q.get(k)); return isNaN(v) ? d : v; }
+var DEG = Math.PI / 180, TAU = Math.PI * 2, HALF_PI = Math.PI / 2;
+var reduceMotion = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+if (q.get('ui') === '0') stageEl.classList.add('no-ui');
+
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputEncoding = T3.sRGBEncoding;
+renderer.toneMapping = T3.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.physicallyCorrectLights = true;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = T3.PCFSoftShadowMap;
+renderer.localClippingEnabled = true;
+renderer.setClearColor(0x0a0907, 1);
+
+/* ---------- 1. The emblem half, read straight from the SVG in the masthead ---------- */
+function parsePath(d) {
+  var tok = d.match(/[a-zA-Z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g), i = 0, cmd = '', x = 0, y = 0, out = [];
+  function num() { return parseFloat(tok[i++]); }
+  while (i < tok.length) {
+    if (/^[a-zA-Z]$/.test(tok[i])) cmd = tok[i++];
+    if (cmd === 'm') { x += num(); y += num(); cmd = 'l'; }
+    else if (cmd === 'h') { var hx = x + num(); out.push([[x, y], [hx, y]]); x = hx; }
+    else if (cmd === 'v') { var vy = y + num(); out.push([[x, y], [x, vy]]); y = vy; }
+    else if (cmd === 'l') { var lx = x + num(), ly = y + num(); out.push([[x, y], [lx, ly]]); x = lx; y = ly; }
+    else if (cmd === 'c') { var a = [x + num(), y + num()], b = [x + num(), y + num()], p = [x + num(), y + num()]; out.push([[x, y], a, b, p]); x = p[0]; y = p[1]; }
+    else break;
+  }
+  return out;
+}
+var segs = parsePath($('half').getAttribute('d'));
+var XC = 34.0742;                       /* the emblem's mirror axis, in SVG units */
+var CN = 7, raw = [];
+segs.forEach(function (s, si) {
+  if (s.length === 2) { raw.push({ x: s[0][0], y: s[0][1], seg: si }); return; }
+  for (var k = 0; k < CN; k++) {
+    var t = k / CN, u = 1 - t;
+    raw.push({
+      x: u * u * u * s[0][0] + 3 * u * u * t * s[1][0] + 3 * u * t * t * s[2][0] + t * t * t * s[3][0],
+      y: u * u * u * s[0][1] + 3 * u * u * t * s[1][1] + 3 * u * t * t * s[2][1] + t * t * t * s[3][1],
+      seg: si
+    });
+  }
+});
+var minX = Infinity, maxY = -Infinity, minY = Infinity;
+raw.forEach(function (p) { minX = Math.min(minX, p.x); maxY = Math.max(maxY, p.y); minY = Math.min(minY, p.y); });
+var S = XC - minX;                      /* outer radius becomes 1 */
+var P = raw.map(function (p) { return { r: (XC - p.x) / S, y: (maxY - p.y) / S, seg: p.seg }; });
+var n = P.length, HEIGHT = (maxY - minY) / S;
+
+var area = 0, i;
+for (i = 0; i < n; i++) { var pa = P[i], pb = P[(i + 1) % n]; area += pa.r * pb.y - pb.r * pa.y; }
+var orient = area > 0 ? 1 : -1;
+var segN = [];
+for (i = 0; i < n; i++) {
+  var a0 = P[i], b0 = P[(i + 1) % n], tx = b0.r - a0.r, ty = b0.y - a0.y, tl = Math.sqrt(tx * tx + ty * ty) || 1;
+  segN.push({ r: orient * ty / tl, y: -orient * tx / tl });
+}
+var nStart = [], nEnd = [];
+for (i = 0; i < n; i++) {
+  var pi = (i - 1 + n) % n, prev = segN[pi], cur = segN[i];
+  if (prev.r * cur.r + prev.y * cur.y > 0.82) {
+    var mr = prev.r + cur.r, my = prev.y + cur.y, ml = Math.sqrt(mr * mr + my * my);
+    nStart[i] = nEnd[pi] = { r: mr / ml, y: my / ml };
+  } else { nStart[i] = cur; nEnd[pi] = prev; }
+}
+/* path segments that face the outside world: top face, tip, cone, outer wall and their fillets */
+var OUTER = { 0: 1, 1: 1, 17: 1, 18: 1, 19: 1, 20: 1, 21: 1 };
+
+function buildLathe(wantOuter) {
+  var RS = 192, pos = [], nor = [], idx = [];
+  for (var i = 0; i < n; i++) {
+    if (!!OUTER[P[i].seg] !== wantOuter) continue;
+    var p0 = P[i], p1 = P[(i + 1) % n], ns = nStart[i], ne = nEnd[i], base = pos.length / 3;
+    for (var j = 0; j <= RS; j++) {
+      var ang = j / RS * TAU, c = Math.cos(ang), s = Math.sin(ang);
+      pos.push(p0.r * c, p0.y, p0.r * s); nor.push(ns.r * c, ns.y, ns.r * s);
+      pos.push(p1.r * c, p1.y, p1.r * s); nor.push(ne.r * c, ne.y, ne.r * s);
+    }
+    for (j = 0; j < RS; j++) {
+      var a = base + 2 * j, b = a + 1, d = a + 2, e = a + 3;
+      if (orient > 0) idx.push(a, b, d, b, e, d); else idx.push(a, d, b, b, d, e);
+    }
+  }
+  var g = new T3.BufferGeometry();
+  g.setAttribute('position', new T3.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new T3.Float32BufferAttribute(nor, 3));
+  g.setIndex(new T3.BufferAttribute(new Uint32Array(idx), 1));
+  return g;
+}
+var outerGeo = buildLathe(true), innerGeo = buildLathe(false);
+
+var shape = new T3.Shape(P.map(function (p) { return new T3.Vector2(p.r, p.y); }));
+var rMin = Infinity;
+P.forEach(function (p) { rMin = Math.min(rMin, p.r); });
+var THICK = 2 * rMin;                   /* each plate is exactly as thick as the emblem's centre slit */
+var plateGeo = new T3.ExtrudeGeometry(shape, { depth: THICK, bevelEnabled: false, steps: 1 });
+plateGeo.translate(0, 0, -THICK / 2);
+var capGeo = new T3.ShapeGeometry(shape);
+
+/* ---------- 2. Studio lighting, written once in GLSL and used for both metal and crystal ---------- */
+var STUDIO = [
+  'float band(float x, float c, float hw, float soft){ return 1.0 - smoothstep(hw, hw + soft, abs(x - c)); }',
+  'float aband(float a, float c, float hw, float soft){ float d = abs(a - c); d = min(d, 6.2831853 - d); return 1.0 - smoothstep(hw, hw + soft, d); }',
+  'vec3 studio(vec3 d){',
+  '  float el = asin(clamp(d.y, -1.0, 1.0));',
+  '  float az = atan(d.x, d.z);',
+  '  vec3 warm = vec3(1.0, 0.90, 0.74), white = vec3(1.0, 0.97, 0.92), cool = vec3(0.78, 0.86, 1.0);',
+  '  vec3 c = vec3(0.02, 0.018, 0.015);',
+  '  c += warm * 0.16 * band(el, 0.15, 0.35, 0.5);',
+  '  c += vec3(0.60, 0.46, 0.26) * 0.5 * (1.0 - smoothstep(-1.0, -0.05, el));',
+  '  c += white * 1.45 * aband(az, -0.75, 0.35, 0.30) * band(el, 0.50, 0.32, 0.22);',
+  '  c += warm * 0.6 * aband(az, 0.15, 0.9, 0.5) * band(el, -0.05, 0.45, 0.35);',
+  '  c += cool * 7.0 * aband(az, 2.25, 0.07, 0.05) * band(el, 0.2, 0.7, 0.15);',
+  '  c += warm * 7.0 * aband(az, -2.45, 0.07, 0.05) * band(el, 0.2, 0.7, 0.15);',
+  '  c += vec3(1.0, 0.85, 0.6) * 0.35 * aband(az, 3.14159, 0.5, 0.4) * band(el, 0.22, 0.2, 0.25);',
+  '  c += white * 1.6 * smoothstep(1.0, 1.3, el);',
+  '  return c;',
+  '}'
+].join('\n');
+
+var scene = new T3.Scene();
+(function makeEnvironment() {
+  var envScene = new T3.Scene();
+  envScene.add(new T3.Mesh(new T3.SphereGeometry(10, 48, 24), new T3.ShaderMaterial({
+    side: T3.BackSide, depthWrite: false,
+    vertexShader: 'varying vec3 vDir;\nvoid main(){ vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: STUDIO + '\nvarying vec3 vDir;\nvoid main(){\n gl_FragColor = vec4(studio(normalize(vDir)), 1.0);\n#include <encodings_fragment>\n}'
+  })));
+  var pmrem = new T3.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(envScene, 0, 0.1, 50).texture;
+  pmrem.dispose();
+})();
+renderer.autoClear = false;
+renderer.shadowMap.autoUpdate = false;
+
+/* ---------- 3. Materials ---------- */
+function lin(hex) { return new T3.Color(hex).convertSRGBToLinear(); }
+var GOLD = lin(0xd2a63c);
+var planeBack = new T3.Plane(new T3.Vector3(0, 0, -1), 0);   /* keeps the half away from the camera */
+var planeFront = new T3.Plane(new T3.Vector3(0, 0, 1), 0);   /* keeps the half toward the camera */
+
+var goldOuterMat = new T3.MeshStandardMaterial({ color: GOLD, metalness: 1, roughness: 0.24, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
+var goldInnerMat = new T3.MeshStandardMaterial({ color: lin(0x1a1610), metalness: 0.3, roughness: 0.8, envMapIntensity: 0.3, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
+var plateFaceMat = new T3.MeshStandardMaterial({ color: GOLD, metalness: 1, roughness: 0.32, transparent: true });
+var plateEdgeMat = new T3.MeshStandardMaterial({ color: lin(0x1c1810), metalness: 0.4, roughness: 0.55, envMapIntensity: 0.5, transparent: true });
+var capMat = new T3.MeshStandardMaterial({ color: GOLD, metalness: 1, roughness: 0.42, side: T3.DoubleSide });
+var plateMats = [plateFaceMat, plateEdgeMat];
+
+function crystalMaterial(refl, rim, body) {
+  return new T3.ShaderMaterial({
+    transparent: true, depthWrite: false, side: T3.DoubleSide, clipping: true,
+    polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2,   /* glass always wins where it is flush with a plate edge */
+    blending: T3.CustomBlending, blendEquation: T3.AddEquation, blendSrc: T3.OneFactor, blendDst: T3.OneMinusSrcAlphaFactor,
+    uniforms: { uRefl: { value: refl }, uRim: { value: rim }, uBody: { value: body }, uRimColor: { value: new T3.Color(1.0, 0.80, 0.42) } },
+    vertexShader: [
+      'varying vec3 vN; varying vec3 vW;',
+      '#include <clipping_planes_pars_vertex>',
+      'void main(){',
+      '  vec4 wp = modelMatrix * vec4(position, 1.0);',
+      '  vW = wp.xyz; vN = mat3(modelMatrix) * normal;',
+      '  vec4 mvPosition = viewMatrix * wp;',
+      '  gl_Position = projectionMatrix * mvPosition;',
+      '  #include <clipping_planes_vertex>',
+      '}'
+    ].join('\n'),
+    fragmentShader: [
+      'uniform float uRefl, uRim, uBody; uniform vec3 uRimColor;',
+      'varying vec3 vN; varying vec3 vW;',
+      STUDIO,
+      '#include <clipping_planes_pars_fragment>',
+      'void main(){',
+      '  #include <clipping_planes_fragment>',
+      '  vec3 N = normalize(vN), V = normalize(cameraPosition - vW);',
+      '  if (dot(N, V) < 0.0) N = -N;',
+      '  float ndv = clamp(dot(N, V), 0.0, 1.0);',
+      '  float f5 = pow(1.0 - ndv, 5.0);',
+      '  vec3 col = studio(reflect(-V, N)) * (0.04 + 0.6 * f5) * uRefl;',
+      '  col += uRimColor * pow(1.0 - ndv, 2.6) * uRim;',
+      '  col += vec3(0.9, 0.78, 0.5) * uBody * 0.25;',
+      '  gl_FragColor = vec4(col, clamp(uBody + 0.35 * f5, 0.0, 0.85));',
+      '  #include <tonemapping_fragment>',
+      '  #include <encodings_fragment>',
+      '}'
+    ].join('\n')
+  });
+}
+var crystalOuterMat = crystalMaterial(0.8, 0.12, 0.012);
+var crystalInnerMat = crystalMaterial(0.25, 0.05, 0.004);
+
+/* ---------- 4. Scene graph: turntable > precession > spin ---------- */
+var turntable = new T3.Group(); scene.add(turntable);
+var tilt = new T3.Group(); turntable.add(tilt);
+var spin = new T3.Group(); tilt.add(spin);
+
+var shells = new T3.Group(); spin.add(shells);
+var goldOuter = new T3.Mesh(outerGeo, goldOuterMat), goldInner = new T3.Mesh(innerGeo, goldInnerMat);
+var crystalOuter = new T3.Mesh(outerGeo, crystalOuterMat), crystalInner = new T3.Mesh(innerGeo, crystalInnerMat);
+goldOuter.castShadow = goldInner.castShadow = true;
+crystalOuter.renderOrder = crystalInner.renderOrder = 2;
+shells.add(goldOuter, goldInner, crystalOuter, crystalInner);
+
+var plates = new T3.Group(); spin.add(plates);
+for (i = 0; i < 4; i++) {
+  var plate = new T3.Mesh(plateGeo, plateMats);
+  plate.rotation.y = i * HALF_PI; plate.castShadow = true; plate.renderOrder = 1;
+  plates.add(plate);
+}
+
+var cap = new T3.Group(); scene.add(cap);
+var capR = new T3.Mesh(capGeo, capMat), capL = new T3.Mesh(capGeo, capMat);
+capL.rotation.y = Math.PI; cap.add(capR, capL); cap.position.z = 0.0006;
+
+var floorG = new T3.Group(); turntable.add(floorG);
+var floor = new T3.Mesh(new T3.CircleGeometry(12, 96), new T3.ShaderMaterial({
+  extensions: { derivatives: true },
+  uniforms: {
+    uBg: { value: new T3.Color(0x0a0907).convertSRGBToLinear() },
+    uPool: { value: new T3.Color(0x3b3221).convertSRGBToLinear() },
+    uGold: { value: new T3.Color(0xaa8b30).convertSRGBToLinear() }
+  },
+  vertexShader: 'varying vec2 vP;\nvoid main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: [
+    'uniform vec3 uBg, uPool, uGold; varying vec2 vP;',
+    'void main(){',
+    '  float r = length(vP);',
+    '  vec3 col = uBg + uPool * exp(-r * r / 5.0);',
+    '  col *= 1.0 - 0.7 * exp(-r * r / 0.03);',
+    '  float aa = fwidth(r) * 1.2 + 1e-4;',
+    '  float ring = 1.0 - smoothstep(0.004, 0.004 + aa, abs(r - 1.70));',
+    '  float ang = atan(vP.y, vP.x);',
+    '  float s1 = 6.2831853 / 36.0, s2 = 6.2831853 / 4.0;',
+    '  float d1 = abs(mod(ang + s1 * 0.5, s1) - s1 * 0.5) * r;',
+    '  float d2 = abs(mod(ang + s2 * 0.5, s2) - s2 * 0.5) * r;',
+    '  float t1 = (1.0 - smoothstep(0.004, 0.004 + aa, d1)) * step(1.78, r) * step(r, 1.86);',
+    '  float t2 = (1.0 - smoothstep(0.007, 0.007 + aa, d2)) * step(1.78, r) * step(r, 2.0);',
+    '  col += uGold * (ring * 0.5 + t1 * 0.4 + t2 * 0.9) * exp(-r * r / 14.0);',
+    '  gl_FragColor = vec4(col, 1.0);',
+    '  #include <encodings_fragment>',
+    '}'
+  ].join('\n')
+}));
+floor.rotation.x = -HALF_PI; floorG.add(floor);
+var shadowCatcher = new T3.Mesh(new T3.PlaneGeometry(9, 9), new T3.ShadowMaterial({ opacity: 0.42 }));
+shadowCatcher.rotation.x = -HALF_PI; shadowCatcher.position.y = 0.002; shadowCatcher.receiveShadow = true;
+scene.add(shadowCatcher);
+
+var key = new T3.SpotLight(0xfff0d8, 70, 0, 0.36, 0.8, 2);
+key.position.set(-2.6, 7.6, 3.6); key.target.position.set(0, 0.5, 0);
+key.castShadow = true; key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.near = 4; key.shadow.camera.far = 14; key.shadow.bias = -0.0004; key.shadow.normalBias = 0.01;
+scene.add(key, key.target);
+
+var camera = new T3.PerspectiveCamera(24, 1, 0.1, 100);
+var TARGET = new T3.Vector3(0, HEIGHT * 0.5 - 0.2, 0);
+
+/* ---------- 5. State ---------- */
+var NOTES = {
+  crystal: '水晶回转体里嵌着两片十字交叉的队徽。四个侧面，正对哪一面都是完整的队徽；转快了，残影叠出来的还是它。',
+  gold: '把队徽的一半绕中轴扫一圈，就是这个实心陀螺。从任何方向看，轮廓都是队徽。',
+  section: '朝向你的这一半换成了水晶。不管转到哪、从哪边看，截面永远是队徽。'
+};
+var OMEGA_MAX = TAU * 7;
+function sliderToOmega(v) { return OMEGA_MAX * Math.pow(v / 100, 2.2); }
+
+var st = {
+  mode: 'crystal',
+  omega: 0, omegaT: 0, phi: 0, psi: 0, tau: 0, alignTo: null, alignT: 0.35, frozen: false,
+  az: 0, azVel: 0, el: 13 * DEG, elT: null, zoom: 1, baseDist: 8
+};
+
+function setMode(m) {
+  if (!NOTES[m]) return;
+  st.mode = m;
+  var sec = m === 'section', cry = m === 'crystal';
+  goldOuter.visible = goldInner.visible = !cry;
+  crystalOuter.visible = cry || sec; crystalInner.visible = cry;
+  cap.visible = sec;
+  var back = sec ? [planeBack] : null, front = sec ? [planeFront] : null;
+  [goldOuterMat, goldInnerMat, plateFaceMat, plateEdgeMat].forEach(function (mat) { mat.clippingPlanes = back; mat.needsUpdate = true; });
+  [crystalOuterMat, crystalInnerMat].forEach(function (mat) { mat.clippingPlanes = front; mat.needsUpdate = true; });
+  crystalOuterMat.uniforms.uRefl.value = sec ? 0.45 : 0.8;
+  crystalOuterMat.uniforms.uRim.value = sec ? 0.05 : 0.12;
+  $('note').textContent = NOTES[m];
+  ['crystal', 'gold', 'section'].forEach(function (k) { $('m-' + k).setAttribute('aria-pressed', String(k === m)); });
+}
+
+function setSpeed(v) {
+  st.omegaT = sliderToOmega(v);
+  if (st.omegaT > 0) st.alignTo = null;
+  var rps = st.omegaT / TAU;
+  $('rps').textContent = v <= 0 ? '停' : (rps < 1 ? rps.toFixed(2) : rps.toFixed(1)) + ' 圈/秒';
+  $('speed').style.setProperty('--fill', v + '%');
+}
+
+/* ---------- 6. Controls ---------- */
+['crystal', 'gold', 'section'].forEach(function (k) { $('m-' + k).addEventListener('click', function () { setMode(k); }); });
+$('speed').addEventListener('input', function (e) { setSpeed(+e.target.value); });
+$('side').addEventListener('click', function () {
+  var on = $('side').getAttribute('aria-pressed') !== 'true';
+  st.elT = on ? 0 : 13 * DEG; st.azVel = 0;
+  $('side').setAttribute('aria-pressed', String(on));
+});
+
+var pointers = {}, pinch = 0, lastMove = 0;
+canvas.addEventListener('pointerdown', function (e) {
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+  pointers[e.pointerId] = { x: e.clientX, y: e.clientY }; st.azVel = 0; pinch = 0;
+});
+canvas.addEventListener('pointermove', function (e) {
+  var p = pointers[e.pointerId]; if (!p) return;
+  var ids = Object.keys(pointers), dx = e.clientX - p.x, dy = e.clientY - p.y;
+  p.x = e.clientX; p.y = e.clientY;
+  if (ids.length >= 2) {
+    var a = pointers[ids[0]], b = pointers[ids[1]], dist = Math.hypot(a.x - b.x, a.y - b.y);
+    if (pinch > 0) st.zoom = Math.min(1.9, Math.max(0.55, st.zoom * pinch / dist));
+    pinch = dist; return;
+  }
+  st.az += dx * 0.008; st.azVel = dx * 0.008 * 60; lastMove = e.timeStamp;
+  if (Math.abs(dy) > 0) {
+    st.el = Math.min(1.35, Math.max(-0.2, st.el + dy * 0.006)); st.elT = null;
+    $('side').setAttribute('aria-pressed', String(Math.abs(st.el) < 0.012));
+  }
+});
+function release(e) { delete pointers[e.pointerId]; pinch = 0; if (e.timeStamp - lastMove > 90) st.azVel = 0; }
+canvas.addEventListener('pointerup', release);
+canvas.addEventListener('pointercancel', release);
+canvas.addEventListener('wheel', function (e) {
+  e.preventDefault();
+  st.zoom = Math.min(1.9, Math.max(0.55, st.zoom * Math.exp(e.deltaY * 0.0012)));
+}, { passive: false });
+
+function resize() {
+  var w = stageEl.clientWidth || 1, h = stageEl.clientHeight || 1;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+  var tanV = Math.tan(camera.fov * DEG / 2);
+  st.baseDist = Math.max(1.72 / tanV, 1.42 / (tanV * camera.aspect));
+}
+if (window.ResizeObserver) new ResizeObserver(resize).observe(stageEl);
+window.addEventListener('resize', resize);
+resize();
+
+/* ---------- 7. Frame ---------- */
+function platePass(kind, weight) {
+  for (var k = 0; k < 2; k++) {
+    var m = plateMats[k];
+    if (kind === 'normal') { m.opacity = k === 1 ? weight : 1; m.blending = T3.NormalBlending; m.depthFunc = T3.LessEqualDepth; m.depthWrite = true; m.colorWrite = true; }
+    else if (kind === 'none') { m.depthWrite = false; m.colorWrite = false; }
+    else if (kind === 'depth') { m.opacity = weight; m.blending = T3.AdditiveBlending; m.depthFunc = T3.LessEqualDepth; m.depthWrite = true; m.colorWrite = false; }
+    else { m.opacity = weight; m.blending = T3.AdditiveBlending; m.depthFunc = T3.EqualDepth; m.depthWrite = false; m.colorWrite = true; }
+  }
+}
+var Y_AXIS = new T3.Vector3(0, 1, 0), axisDir = new T3.Vector3();
+
+function draw(phiFrom, phiTo) {
+  var sweep = Math.min(Math.abs(phiTo - phiFrom), HALF_PI);
+  var K = st.mode === 'crystal' ? Math.min(18, Math.max(1, Math.ceil(sweep / (2.5 * DEG)))) : 1;
+  renderer.shadowMap.needsUpdate = true;
+  renderer.clear();
+  if (K === 1) {
+    /* outside crystal mode the plates only show as thin seams; let them fade once they would strobe */
+    var seam = st.mode === 'crystal' ? 1 : 1 - Math.min(1, Math.max(0, (sweep / DEG - 6) / 8));
+    plates.visible = seam > 0.01;
+    spin.rotation.y = phiTo; platePass('normal', seam);
+    renderer.render(scene, camera);
+    plates.visible = true;
+    return;
+  }
+  /* motion blur: average K sub-frames of the plates, additively, each with its own depth */
+  spin.rotation.y = (phiFrom + phiTo) / 2;
+  shells.visible = false; platePass('none');
+  renderer.render(scene, camera);
+  floorG.visible = false; shadowCatcher.visible = false;
+  for (var k = 0; k < K; k++) {
+    spin.rotation.y = phiTo - sweep * (k + 0.5) / K * (phiTo >= phiFrom ? 1 : -1);
+    renderer.clearDepth();
+    platePass('depth', 1 / K); renderer.render(scene, camera);
+    platePass('add', 1 / K); renderer.render(scene, camera);
+  }
+  plates.visible = false; shells.visible = true;
+  renderer.clearDepth();
+  renderer.render(scene, camera);
+  plates.visible = true; floorG.visible = true; shadowCatcher.visible = true;
+  platePass('normal', 1);
+}
+
+function step(dt) {
+  var phiFrom = st.phi;
+  if (!st.frozen) {
+    if (st.omegaT === 0) {
+      /* coming to rest: glide to the nearest pose where a plate squarely faces the viewer */
+      if (st.alignTo === null) {
+        st.alignTo = Math.round((st.phi + st.omega * 0.45 + st.az) / HALF_PI) * HALF_PI - st.az;
+        if (st.alignTo < st.phi && st.omega > 0.3) st.alignTo += HALF_PI;
+        st.alignT = st.omega > 0.3 ? Math.min(1.2, Math.max(0.25, (st.alignTo - st.phi) / st.omega)) : 0.35;
+      }
+      st.phi += (st.alignTo - st.phi) * (1 - Math.exp(-dt / st.alignT));
+      st.omega = Math.abs(st.alignTo - st.phi) / st.alignT;
+    } else {
+      st.omega += (st.omegaT - st.omega) * (1 - Math.exp(-dt / 0.45));
+      st.phi += st.omega * dt;
+    }
+  }
+
+  /* gentle precession: a little lean at low speed, almost upright when fast */
+  var wob = (st.mode === 'section' || reduceMotion || st.frozen) ? 0 : 2.0 * DEG * (st.omega / (st.omega + 1.5)) / (1 + st.omega / 14);
+  st.tau += (wob - st.tau) * (1 - Math.exp(-dt * 3));
+  st.psi += dt * (0.35 + 1.6 / (1 + st.omega / 6));
+  axisDir.set(Math.sin(st.tau) * Math.cos(st.psi), Math.cos(st.tau), Math.sin(st.tau) * Math.sin(st.psi));
+  tilt.quaternion.setFromUnitVectors(Y_AXIS, axisDir);
+
+  /* view */
+  if (!Object.keys(pointers).length) { st.az += st.azVel * dt; st.azVel *= Math.exp(-dt * 4); }
+  if (st.elT !== null) { st.el += (st.elT - st.el) * (1 - Math.exp(-dt * 7)); if (Math.abs(st.elT - st.el) < 1e-4) { st.el = st.elT; st.elT = null; } }
+  turntable.rotation.y = st.az;
+  var dist = st.baseDist * st.zoom;
+  camera.position.set(0, TARGET.y + dist * Math.sin(st.el), dist * Math.cos(st.el));
+  camera.lookAt(TARGET);
+  return phiFrom;
+}
+
+var last = 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  var dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016); last = now;
+  var phiFrom = step(dt);
+  draw(phiFrom, st.phi);
+}
+
+/* ---------- 8. Start ---------- */
+var startMode = q.get('mode') || 'crystal';
+setMode(NOTES[startMode] ? startMode : 'crystal');
+var startSpeed = qn('speed', reduceMotion ? 14 : 27);
+$('speed').value = startSpeed; setSpeed(startSpeed);
+st.az = qn('az', 0) * DEG; st.el = qn('el', 13) * DEG; st.zoom = qn('zoom', 1);
+st.phi = -st.az;                        /* first frame: a plate squarely faces the viewer, then it spins up */
+if (q.get('phi') !== null) { st.frozen = true; st.phi = qn('phi', 0) * DEG - st.az; }
+for (i = qn('ff', 0); i > 0; i--) step(1 / 60);   /* test hook: fast-forward the simulation */
+$('side').setAttribute('aria-pressed', String(Math.abs(st.el) < 0.012));
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
