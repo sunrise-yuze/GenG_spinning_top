@@ -8,7 +8,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&display=swap">
 <style>
-/* Layout: one full-bleed stage. Masthead top-left, small credits top-right, caption + control dock bottom-centre. */
+/* Layout: one full-bleed stage. Masthead top-left, small credits top-right, control dock bottom-centre. */
 :root{
   color-scheme:dark;
   --ink:#0a0907;            /* stage black, warm */
@@ -26,7 +26,7 @@ html,body{height:100%}
 body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--body);font-size:14px;line-height:1.5;overflow:hidden;-webkit-font-smoothing:antialiased}
 #stage{position:relative;height:100%;overflow:hidden;-webkit-user-select:none;user-select:none}
 #gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
-#gl:active{cursor:grabbing}
+#fx{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 
 .mast{position:absolute;inset:0 0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
   padding-block:18px 0;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));pointer-events:none}
@@ -35,45 +35,44 @@ body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--body);f
 h1{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(20px,2.6vw,28px);letter-spacing:.06em;line-height:1.1;white-space:nowrap}
 h1 b{font-family:var(--body);font-weight:700;color:var(--gold-hi);letter-spacing:.12em;margin-left:.2em}
 .brand p{margin:3px 0 0;font-size:12px;color:var(--mute);letter-spacing:.1em}
+.aside{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
 .credits{margin:3px 0 0;text-align:right;font-size:11px;line-height:1.75;color:var(--mute);letter-spacing:.08em}
+.snd{pointer-events:auto;padding:2px 9px;border:1px solid var(--line);font-size:11px;letter-spacing:.1em;color:var(--mute)}
+.snd[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-hi)}
 
 .foot{position:absolute;inset:auto 0 0;display:flex;flex-direction:column;align-items:center;gap:12px;
   padding-block:0 18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:none}
-.note{margin:0;max-width:31em;min-height:3em;display:flex;align-items:flex-end;text-align:center;text-wrap:balance;font-size:13px;color:var(--paper);text-shadow:0 0 10px var(--ink),0 0 2px var(--ink)}
 .dock{pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 18px;padding:10px 14px;
   background:var(--panel);border:1px solid var(--line);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 button{font:inherit;color:inherit;background:none;border:0;margin:0;cursor:pointer}
 :focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
-.seg{display:flex;border:1px solid var(--line)}
-.seg button{padding:7px 16px;min-width:62px;color:var(--mute);letter-spacing:.14em;transition:background .15s,color .15s}
-.seg button + button{border-left:1px solid var(--line)}
-.seg button:hover{color:var(--paper)}
-.seg button[aria-pressed="true"]{background:var(--gold);color:var(--ink);font-weight:700}
 .speed{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:12px;letter-spacing:.14em}
-.speed output{font-family:var(--display);font-size:13px;letter-spacing:.04em;color:var(--paper);min-width:5.2em;font-variant-numeric:tabular-nums}
+.speed .rps{font-family:var(--display);font-size:13px;letter-spacing:.04em;color:var(--paper);min-width:5.2em;font-variant-numeric:tabular-nums}
 input[type=range]{-webkit-appearance:none;appearance:none;width:clamp(110px,20vw,190px);height:24px;margin:0;background:none;cursor:pointer}
-input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--gold) var(--fill,27%),var(--line) var(--fill,27%))}
-input[type=range]::-moz-range-track{height:2px;background:var(--line)}
-input[type=range]::-moz-range-progress{height:2px;background:var(--gold)}
+/* the track doubles as a speedometer: it fills to the top's actual speed, while the thumb marks the cruising speed */
+input[type=range]::-webkit-slider-runnable-track{height:3px;background:linear-gradient(90deg,var(--gold) var(--live,25%),var(--line) var(--live,25%))}
+input[type=range]::-moz-range-track{height:3px;background:linear-gradient(90deg,var(--gold) var(--live,25%),var(--line) var(--live,25%))}
 /* slider thumb is the emblem's own outline: flat top, 45-degree point */
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:16px;margin-top:-7px;background:var(--gold-hi);clip-path:polygon(0 0,100% 0,100% 52%,50% 100%,0 52%)}
 input[type=range]::-moz-range-thumb{width:14px;height:16px;border:0;border-radius:0;background:var(--gold-hi);clip-path:polygon(0 0,100% 0,100% 52%,50% 100%,0 52%)}
 .view{padding:7px 14px;border:1px solid var(--line);color:var(--mute);letter-spacing:.14em;transition:color .15s,border-color .15s}
 .view:hover{color:var(--paper)}
 .view[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-hi)}
+.whip{padding:7px 18px;border:1px solid var(--gold);background:var(--gold);color:var(--ink);font-weight:700;letter-spacing:.14em;transition:background .15s,transform .08s}
+.whip:hover{background:var(--gold-hi)}
+.whip:active{transform:translateY(1px) scale(.97)}
 #fallback{position:absolute;inset:0;margin:auto;height:max-content;max-width:26em;padding:0 20px;text-align:center;color:var(--mute)}
 .no-ui .mast,.no-ui .foot{display:none}
 @media (max-width:520px){
   .credits{font-size:10px}
   .brand svg{width:28px}
-  .note{font-size:12px}
-  .seg button{padding:7px 13px;min-width:54px}
 }
 </style>
 </head>
 <body>
 <div id="stage">
-  <canvas id="gl" aria-label="由 Gen.G 队徽旋转而成的三维陀螺，正在自转"></canvas>
+  <canvas id="gl" aria-label="由 Gen.G 队徽旋转而成的三维陀螺，正在自转；在陀螺上快速划过可以抽鞭加速"></canvas>
+  <canvas id="fx" aria-hidden="true"></canvas>
 
   <div class="mast">
     <div class="brand">
@@ -86,21 +85,19 @@ input[type=range]::-moz-range-thumb{width:14px;height:16px;border:0;border-radiu
         <p>队徽绕中轴转一圈</p>
       </div>
     </div>
-    <p class="credits">拖动换视角 · 滚轮缩放<br>粉丝自制 · 非官方</p>
+    <div class="aside">
+      <p class="credits">在陀螺上快速划过，抽它一鞭<br>拖底盘换视角 · 滚轮缩放<br>粉丝自制 · 非官方</p>
+      <button type="button" class="snd" id="snd" aria-pressed="true">声音 开</button>
+    </div>
   </div>
 
   <div class="foot" id="foot">
-    <p class="note" id="note"></p>
     <div class="dock">
-      <div class="seg" role="group" aria-label="形态">
-        <button type="button" id="m-crystal" data-mode="crystal" aria-pressed="true">水晶</button>
-        <button type="button" id="m-gold" data-mode="gold" aria-pressed="false">纯金</button>
-        <button type="button" id="m-section" data-mode="section" aria-pressed="false">剖面</button>
-      </div>
-      <label class="speed" for="speed">转速
-        <input type="range" id="speed" min="0" max="100" step="1" value="27">
-        <output id="rps" for="speed"></output>
+      <label class="speed" for="speed">
+        <input type="range" id="speed" min="0" max="100" step="1" value="25" aria-label="巡航转速">
+        <span class="rps" id="rps" aria-hidden="true"></span>
       </label>
+      <button type="button" class="whip" id="whip" title="也可以按空格键">抽一鞭</button>
       <button type="button" class="view" id="side" aria-pressed="false">正侧面</button>
     </div>
   </div>
@@ -134,7 +131,6 @@ renderer.toneMappingExposure = 1.0;
 renderer.physicallyCorrectLights = true;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = T3.PCFSoftShadowMap;
-renderer.localClippingEnabled = true;
 renderer.setClearColor(0x0a0907, 1);
 
 /* ---------- 1. The emblem half, read straight from the SVG in the masthead ---------- */
@@ -220,7 +216,6 @@ P.forEach(function (p) { rMin = Math.min(rMin, p.r); });
 var THICK = 2 * rMin;                   /* each plate is exactly as thick as the emblem's centre slit */
 var plateGeo = new T3.ExtrudeGeometry(shape, { depth: THICK, bevelEnabled: false, steps: 1 });
 plateGeo.translate(0, 0, -THICK / 2);
-var capGeo = new T3.ShapeGeometry(shape);
 
 /* ---------- 2. Studio lighting, written once in GLSL and used for both metal and crystal ---------- */
 var STUDIO = [
@@ -261,40 +256,30 @@ renderer.shadowMap.autoUpdate = false;
 /* ---------- 3. Materials ---------- */
 function lin(hex) { return new T3.Color(hex).convertSRGBToLinear(); }
 var GOLD = lin(0xd2a63c);
-var planeBack = new T3.Plane(new T3.Vector3(0, 0, -1), 0);   /* keeps the half away from the camera */
-var planeFront = new T3.Plane(new T3.Vector3(0, 0, 1), 0);   /* keeps the half toward the camera */
-
-var goldOuterMat = new T3.MeshStandardMaterial({ color: GOLD, metalness: 1, roughness: 0.24, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
-var goldInnerMat = new T3.MeshStandardMaterial({ color: lin(0x1a1610), metalness: 0.3, roughness: 0.8, envMapIntensity: 0.3, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 2 });
 var plateFaceMat = new T3.MeshStandardMaterial({ color: GOLD, metalness: 1, roughness: 0.32, transparent: true });
 var plateEdgeMat = new T3.MeshStandardMaterial({ color: lin(0x1c1810), metalness: 0.4, roughness: 0.55, envMapIntensity: 0.5, transparent: true });
-var capMat = new T3.MeshStandardMaterial({ color: GOLD, metalness: 1, roughness: 0.42, side: T3.DoubleSide });
 var plateMats = [plateFaceMat, plateEdgeMat];
 
 function crystalMaterial(refl, rim, body) {
   return new T3.ShaderMaterial({
-    transparent: true, depthWrite: false, side: T3.DoubleSide, clipping: true,
+    transparent: true, depthWrite: false, side: T3.DoubleSide,
     polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2,   /* glass always wins where it is flush with a plate edge */
     blending: T3.CustomBlending, blendEquation: T3.AddEquation, blendSrc: T3.OneFactor, blendDst: T3.OneMinusSrcAlphaFactor,
     uniforms: { uRefl: { value: refl }, uRim: { value: rim }, uBody: { value: body }, uRimColor: { value: new T3.Color(1.0, 0.80, 0.42) } },
     vertexShader: [
       'varying vec3 vN; varying vec3 vW;',
-      '#include <clipping_planes_pars_vertex>',
       'void main(){',
       '  vec4 wp = modelMatrix * vec4(position, 1.0);',
       '  vW = wp.xyz; vN = mat3(modelMatrix) * normal;',
       '  vec4 mvPosition = viewMatrix * wp;',
       '  gl_Position = projectionMatrix * mvPosition;',
-      '  #include <clipping_planes_vertex>',
       '}'
     ].join('\n'),
     fragmentShader: [
       'uniform float uRefl, uRim, uBody; uniform vec3 uRimColor;',
       'varying vec3 vN; varying vec3 vW;',
       STUDIO,
-      '#include <clipping_planes_pars_fragment>',
       'void main(){',
-      '  #include <clipping_planes_fragment>',
       '  vec3 N = normalize(vN), V = normalize(cameraPosition - vW);',
       '  if (dot(N, V) < 0.0) N = -N;',
       '  float ndv = clamp(dot(N, V), 0.0, 1.0);',
@@ -318,11 +303,9 @@ var tilt = new T3.Group(); turntable.add(tilt);
 var spin = new T3.Group(); tilt.add(spin);
 
 var shells = new T3.Group(); spin.add(shells);
-var goldOuter = new T3.Mesh(outerGeo, goldOuterMat), goldInner = new T3.Mesh(innerGeo, goldInnerMat);
 var crystalOuter = new T3.Mesh(outerGeo, crystalOuterMat), crystalInner = new T3.Mesh(innerGeo, crystalInnerMat);
-goldOuter.castShadow = goldInner.castShadow = true;
 crystalOuter.renderOrder = crystalInner.renderOrder = 2;
-shells.add(goldOuter, goldInner, crystalOuter, crystalInner);
+shells.add(crystalOuter, crystalInner);
 
 var plates = new T3.Group(); spin.add(plates);
 for (i = 0; i < 4; i++) {
@@ -331,21 +314,18 @@ for (i = 0; i < 4; i++) {
   plates.add(plate);
 }
 
-var cap = new T3.Group(); scene.add(cap);
-var capR = new T3.Mesh(capGeo, capMat), capL = new T3.Mesh(capGeo, capMat);
-capL.rotation.y = Math.PI; cap.add(capR, capL); cap.position.z = 0.0006;
-
 var floorG = new T3.Group(); turntable.add(floorG);
 var floor = new T3.Mesh(new T3.CircleGeometry(12, 96), new T3.ShaderMaterial({
   extensions: { derivatives: true },
   uniforms: {
     uBg: { value: new T3.Color(0x0a0907).convertSRGBToLinear() },
     uPool: { value: new T3.Color(0x3b3221).convertSRGBToLinear() },
-    uGold: { value: new T3.Color(0xaa8b30).convertSRGBToLinear() }
+    uGold: { value: new T3.Color(0xaa8b30).convertSRGBToLinear() },
+    uGlow: { value: 0 }
   },
   vertexShader: 'varying vec2 vP;\nvoid main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
   fragmentShader: [
-    'uniform vec3 uBg, uPool, uGold; varying vec2 vP;',
+    'uniform vec3 uBg, uPool, uGold; uniform float uGlow; varying vec2 vP;',
     'void main(){',
     '  float r = length(vP);',
     '  vec3 col = uBg + uPool * exp(-r * r / 5.0);',
@@ -358,7 +338,8 @@ var floor = new T3.Mesh(new T3.CircleGeometry(12, 96), new T3.ShaderMaterial({
     '  float d2 = abs(mod(ang + s2 * 0.5, s2) - s2 * 0.5) * r;',
     '  float t1 = (1.0 - smoothstep(0.004, 0.004 + aa, d1)) * step(1.78, r) * step(r, 1.86);',
     '  float t2 = (1.0 - smoothstep(0.007, 0.007 + aa, d2)) * step(1.78, r) * step(r, 2.0);',
-    '  col += uGold * (ring * 0.5 + t1 * 0.4 + t2 * 0.9) * exp(-r * r / 14.0);',
+    '  col += uGold * (ring * 0.5 + t1 * 0.4 + t2 * 0.9) * exp(-r * r / 14.0) * (1.0 + 1.6 * uGlow);',
+    '  col += uGold * 0.16 * uGlow * exp(-(r - 1.7) * (r - 1.7) / 0.012);',
     '  gl_FragColor = vec4(col, 1.0);',
     '  #include <encodings_fragment>',
     '}'
@@ -376,49 +357,289 @@ key.shadow.camera.near = 4; key.shadow.camera.far = 14; key.shadow.bias = -0.000
 scene.add(key, key.target);
 
 var camera = new T3.PerspectiveCamera(24, 1, 0.1, 100);
-var TARGET = new T3.Vector3(0, HEIGHT * 0.5 - 0.2, 0);
+var TARGET = new T3.Vector3(0, HEIGHT * 0.5 - 0.13, 0);
 
 /* ---------- 5. State ---------- */
-var NOTES = {
-  crystal: '水晶回转体里嵌着两片十字交叉的队徽。四个侧面，正对哪一面都是完整的队徽；转快了，残影叠出来的还是它。',
-  gold: '把队徽的一半绕中轴扫一圈，就是这个实心陀螺。从任何方向看，轮廓都是队徽。',
-  section: '朝向你的这一半换成了水晶。不管转到哪、从哪边看，截面永远是队徽。'
-};
-var OMEGA_MAX = TAU * 7;
+var OMEGA_MAX = TAU * 8;
 function sliderToOmega(v) { return OMEGA_MAX * Math.pow(v / 100, 2.2); }
 
 var st = {
-  mode: 'crystal',
-  omega: 0, omegaT: 0, phi: 0, psi: 0, tau: 0, alignTo: null, alignT: 0.35, frozen: false,
+  omega: 0, omegaT: 0, motor: 0, boost: 0, phi: 0, psi: 0, tau: 0, alignTo: null, alignT: 0.35, frozen: false,
+  nut: 0, nutPh: 0, slide: 0, slideV: 0, pulse: 0, t: 0,
   az: 0, azVel: 0, el: 13 * DEG, elT: null, zoom: 1, baseDist: 8
 };
 
-function setMode(m) {
-  if (!NOTES[m]) return;
-  st.mode = m;
-  var sec = m === 'section', cry = m === 'crystal';
-  goldOuter.visible = goldInner.visible = !cry;
-  crystalOuter.visible = cry || sec; crystalInner.visible = cry;
-  cap.visible = sec;
-  var back = sec ? [planeBack] : null, front = sec ? [planeFront] : null;
-  [goldOuterMat, goldInnerMat, plateFaceMat, plateEdgeMat].forEach(function (mat) { mat.clippingPlanes = back; mat.needsUpdate = true; });
-  [crystalOuterMat, crystalInnerMat].forEach(function (mat) { mat.clippingPlanes = front; mat.needsUpdate = true; });
-  crystalOuterMat.uniforms.uRefl.value = sec ? 0.45 : 0.8;
-  crystalOuterMat.uniforms.uRim.value = sec ? 0.05 : 0.12;
-  $('note').textContent = NOTES[m];
-  ['crystal', 'gold', 'section'].forEach(function (k) { $('m-' + k).setAttribute('aria-pressed', String(k === m)); });
-}
-
 function setSpeed(v) {
   st.omegaT = sliderToOmega(v);
-  if (st.omegaT > 0) st.alignTo = null;
-  var rps = st.omegaT / TAU;
-  $('rps').textContent = v <= 0 ? '停' : (rps < 1 ? rps.toFixed(2) : rps.toFixed(1)) + ' 圈/秒';
-  $('speed').style.setProperty('--fill', v + '%');
+  if (st.omegaT > 0) leaveGlide();
+  $('speed').setAttribute('aria-valuetext', v <= 0 ? '停' : (st.omegaT / TAU).toFixed(2) + ' 圈每秒');
+}
+
+/* ---------- 5b. The whip: a rope simulated on a 2D overlay and lashed across the top's silhouette ---------- */
+var fx = $('fx'), ctx = fx.getContext('2d'), W = 1, H = 1, fxDirty = false;
+var SHOULDER = (maxY - 49.74) / S;      /* height where the wall turns into the cone */
+var P3 = new T3.Vector3(), tmpS = {};
+function toScreen(x, y, z, o) { P3.set(x, y, z).project(camera); o.x = (P3.x * 0.5 + 0.5) * W; o.y = (0.5 - P3.y * 0.5) * H; return o; }
+
+/* the top as the viewer sees it: lid, wall, cone, tip - in CSS pixels */
+var sil = { p: [{}, {}, {}, {}, {}, {}], x0: 0, x1: 0, yTop: 0, yShoulder: 0, yTip: 0, w: 1, h: 1, cx: 0, cy: 0 };
+function updateSilhouette() {
+  var s = st.slide, p = sil.p;
+  toScreen(-1 + s, HEIGHT, 0, p[0]); toScreen(1 + s, HEIGHT, 0, p[1]); toScreen(1 + s, SHOULDER, 0, p[2]);
+  toScreen(0.1 + s, 0, 0, p[3]); toScreen(-0.1 + s, 0, 0, p[4]); toScreen(-1 + s, SHOULDER, 0, p[5]);
+  toScreen(s, HEIGHT, -1, tmpS);
+  sil.yTop = Math.min(p[0].y, tmpS.y); p[0].y = p[1].y = sil.yTop;
+  sil.x0 = p[0].x; sil.x1 = p[1].x; sil.w = Math.max(40, sil.x1 - sil.x0);
+  sil.yShoulder = p[2].y; sil.yTip = p[3].y; sil.h = Math.max(40, sil.yTip - sil.yTop);
+  sil.cx = (sil.x0 + sil.x1) / 2; sil.cy = (sil.yTop + sil.yTip) / 2;
+}
+function inSil(x, y, k) {
+  var p = sil.p, cx = sil.cx, cy = sil.cy, inside = false;
+  for (var i = 0, j = 5; i < 6; j = i++) {
+    var xi = cx + (p[i].x - cx) * k, yi = cy + (p[i].y - cy) * k, xj = cx + (p[j].x - cx) * k, yj = cy + (p[j].y - cy) * k;
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+/* how far from the axis a pointer ray lands on the floor; null when it misses the floor */
+function floorRadiusAt(x, y) {
+  var o = camera.position;
+  if (o.y <= 0) return null;
+  P3.set(x / W * 2 - 1, 1 - y / H * 2, 0.5).unproject(camera);
+  var dy = P3.y - o.y;
+  if (dy > -1e-6) return null;
+  var t = -o.y / dy, fx0 = o.x + (P3.x - o.x) * t, fz0 = o.z + (P3.z - o.z) * t;
+  return Math.sqrt(fx0 * fx0 + fz0 * fz0);
+}
+/* press on the top, or in the air beside its body: whip. Press the turntable or anywhere else: turn the view. */
+function zoneAt(x, y) {
+  if (inSil(x, y, 1.14)) return 'whip';
+  if (y > sil.yTop - 0.12 * sil.h && y < sil.yShoulder + 0.08 * sil.h && x > sil.x0 - sil.w && x < sil.x1 + sil.w) {
+    var fr = floorRadiusAt(x, y);
+    if (fr === null || fr > 2.15) return 'whip';
+  }
+  return 'orbit';
+}
+
+/* --- sound: a whoosh that follows the cord, a crack on contact (starts only after a gesture) --- */
+var soundOn = true, actx = null, noiseBuf = null, master = null, whooshGain = null, whooshFilter = null;
+try { soundOn = localStorage.getItem('geng-top-sound') !== 'off'; } catch (err) {}
+function setSound(on) {
+  soundOn = on;
+  try { localStorage.setItem('geng-top-sound', on ? 'on' : 'off'); } catch (err) {}
+  $('snd').setAttribute('aria-pressed', String(on));
+  $('snd').textContent = on ? '声音 开' : '声音 关';
+  if (!on && whooshGain) whooshGain.gain.setTargetAtTime(0, actx.currentTime, 0.02);
+}
+function audioInit() {
+  if (!soundOn) return;
+  try {
+    if (!actx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      actx = new AC();
+      var len = actx.sampleRate, d;
+      noiseBuf = actx.createBuffer(1, len, actx.sampleRate); d = noiseBuf.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      master = actx.createGain(); master.gain.value = 0.7; master.connect(actx.destination);
+      var src = actx.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+      whooshFilter = actx.createBiquadFilter(); whooshFilter.type = 'bandpass'; whooshFilter.frequency.value = 600; whooshFilter.Q.value = 0.8;
+      whooshGain = actx.createGain(); whooshGain.gain.value = 0;
+      src.connect(whooshFilter); whooshFilter.connect(whooshGain); whooshGain.connect(master); src.start();
+    }
+    if (actx.state === 'suspended') actx.resume();
+  } catch (err) { actx = null; }
+}
+function crack(s) {
+  if (!soundOn || !actx || actx.state !== 'running') return;
+  var t = actx.currentTime;
+  var a = actx.createBufferSource(); a.buffer = noiseBuf; a.playbackRate.value = 1.4;
+  var hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2200;
+  var g = actx.createGain();
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.45 + 0.5 * s, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+  a.connect(hp); hp.connect(g); g.connect(master); a.start(t, Math.random() * 0.5, 0.12);
+  var o = actx.createOscillator(); o.type = 'triangle';
+  o.frequency.setValueAtTime(210, t); o.frequency.exponentialRampToValueAtTime(90, t + 0.09);
+  var g2 = actx.createGain();
+  g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(0.3 + 0.25 * s, t + 0.006); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+  o.connect(g2); g2.connect(master); o.start(t); o.stop(t + 0.16);
+}
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden && whooshGain) whooshGain.gain.setTargetAtTime(0, actx.currentTime, 0.02);
+});
+
+/* --- what a lash does to the top --- */
+var sparks = [], flashes = [];
+function leaveGlide() { if (st.alignTo !== null) { st.alignTo = null; st.motor = st.omega; st.boost = 0; } }
+function hit(s, dir, x, y) {
+  rope.lastHit = st.t; rope.lastDir = dir; rope.hits++;
+  leaveGlide();
+  var room = 1 - Math.pow(Math.min(1, st.omega / OMEGA_MAX), 2);
+  st.boost = Math.max(0, Math.min(OMEGA_MAX - st.motor, st.boost + (2.6 + 6.4 * s) * Math.max(0.05, room)));
+  if (!reduceMotion) {
+    st.nut = Math.min(4 * DEG, st.nut + (0.9 + 1.8 * s) * DEG); st.nutPh = dir > 0 ? 0 : Math.PI;
+    st.slideV += dir * (0.5 + 0.8 * s);
+  }
+  st.pulse = Math.min(1.6, st.pulse + 0.5 + 0.7 * s);
+  var n = Math.round(9 + 13 * s);
+  for (var i = 0; i < n; i++) {
+    var a = (dir > 0 ? 0 : Math.PI) + (Math.random() - 0.5) * 1.7 - dir * 0.25, sp = (240 + 760 * Math.random()) * (0.6 + 0.7 * s);
+    sparks.push({ x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 120, life: 0, max: 0.22 + Math.random() * 0.3 });
+  }
+  flashes.push({ x: x, y: y, life: 0, max: 0.13, r: 26 + 46 * s });
+  crack(s);
+}
+
+/* --- the rope: a Verlet chain hanging from the tip of the stick --- */
+var RN = 22;
+var rope = {
+  x: new Float32Array(RN), y: new Float32Array(RN), ox: new Float32Array(RN), oy: new Float32Array(RN),
+  on: false, held: false, alpha: 0, len: 300, seg: 14, stick: 48, hx: 0, hy: 0, tx: 0, ty: 0, ang: -1.05,
+  inside: false, lastHit: -9, lastDir: 0, tip: 0, auto: null, hits: 0
+};
+function ropeStart(x, y, trail) {
+  rope.len = Math.min(420, Math.max(130, sil.w * 0.72)); rope.seg = rope.len / (RN - 1);
+  rope.stick = Math.min(64, Math.max(34, sil.w * 0.16));
+  rope.ang = trail < 0 ? -1.05 : -2.09;            /* stick leans toward the top, cord trails away from it */
+  rope.hx = rope.tx = x; rope.hy = rope.ty = y;
+  var tx = x + rope.stick * Math.cos(rope.ang), ty = y + rope.stick * Math.sin(rope.ang);
+  for (var i = 0; i < RN; i++) {
+    rope.x[i] = rope.ox[i] = tx + trail * i * rope.seg * 0.8;
+    rope.y[i] = rope.oy[i] = ty + i * rope.seg * 0.6;
+  }
+  rope.on = rope.held = true; rope.alpha = 1; rope.inside = false; rope.hits = 0; rope.auto = null;
+}
+function ropeStep(dt) {
+  var nx = rope.tx, ny = rope.ty, vx = (nx - rope.hx) / dt, vy = (ny - rope.hy) / dt;
+  if (Math.abs(vx) + Math.abs(vy) > 60) {           /* the stick swings toward where the hand is going */
+    var da = Math.atan2(vy * 0.6 - 520, vx) - rope.ang;
+    rope.ang += Math.atan2(Math.sin(da), Math.cos(da)) * (1 - Math.exp(-dt / 0.08));
+  }
+  var SUB = 4, h = dt / SUB, g = rope.len * 3.2 * h * h, x = rope.x, y = rope.y, ox = rope.ox, oy = rope.oy;
+  var best = 0, bx = 0, by = 0, any = false, i, k, it;
+  for (k = 1; k <= SUB; k++) {
+    var f = k / SUB, cx = rope.hx + (nx - rope.hx) * f, cy = rope.hy + (ny - rope.hy) * f;
+    for (i = 1; i < RN; i++) {
+      var px = x[i], py = y[i];
+      x[i] += (px - ox[i]) * 0.992; y[i] += (py - oy[i]) * 0.992 + g;
+      ox[i] = px; oy[i] = py;
+    }
+    ox[0] = x[0]; oy[0] = y[0];
+    x[0] = cx + rope.stick * Math.cos(rope.ang); y[0] = cy + rope.stick * Math.sin(rope.ang);
+    for (it = 0; it < 6; it++) for (i = 0; i < RN - 1; i++) {
+      var dx = x[i + 1] - x[i], dy = y[i + 1] - y[i], d = Math.sqrt(dx * dx + dy * dy) || 1e-6, m = (d - rope.seg) / d;
+      if (m <= 0) continue;                           /* a cord only pulls; slack never pushes back */
+      if (i === 0) { x[1] -= dx * m; y[1] -= dy * m; }
+      else { m *= 0.5; x[i] += dx * m; y[i] += dy * m; x[i + 1] -= dx * m; y[i + 1] -= dy * m; }
+    }
+    for (i = 1; i < RN - 1; i++) {                    /* a little bending stiffness keeps the slack in smooth curves */
+      x[i] += ((x[i - 1] + x[i + 1]) * 0.5 - x[i]) * 0.12; y[i] += ((y[i - 1] + y[i + 1]) * 0.5 - y[i]) * 0.12;
+    }
+    for (i = 4; i < RN; i++) if (inSil(x[i], y[i], 1)) {
+      any = true;
+      var v = (x[i] - ox[i]) / h;
+      if (Math.abs(v) > Math.abs(best)) { best = v; bx = x[i]; by = y[i]; }
+      ox[i] = x[i] - (x[i] - ox[i]) * 0.95; oy[i] = y[i] - (y[i] - oy[i]) * 0.95;     /* the cord drags on the surface */
+    }
+  }
+  rope.hx = nx; rope.hy = ny;
+  var tvx = x[RN - 1] - ox[RN - 1], tvy = y[RN - 1] - oy[RN - 1];
+  rope.tip += (Math.sqrt(tvx * tvx + tvy * tvy) / h / rope.len - rope.tip) * 0.4;
+  if (any) {
+    var vn = Math.abs(best) / sil.w, dir = best > 0 ? 1 : -1;
+    if (vn > 1.5 && st.t - rope.lastHit > 0.16 && (!rope.inside || dir !== rope.lastDir || st.t - rope.lastHit > 0.5))
+      hit(Math.pow(Math.min(1, (vn - 1.5) / 7.5), 0.7), dir, bx, by);
+  }
+  rope.inside = any;
+}
+/* a lash thrown for the visitor: the button, the space bar, and one demonstration after the page opens */
+var autoDir = 1;
+function autoLash() {
+  if (rope.on && rope.held && !rope.auto) return;   /* the visitor is holding the whip */
+  if (rope.auto && !rope.hits) hit(0.6, rope.auto.x1 > rope.auto.x0 ? 1 : -1, sil.cx, (sil.yTop + sil.yShoulder) / 2);
+  var y = (sil.yTop + sil.yShoulder) / 2 + Math.min(64, Math.max(34, sil.w * 0.16)) * 0.7, d = autoDir; autoDir = -autoDir;   /* cord, not stick, crosses mid-body */
+  var x0 = d > 0 ? sil.x0 - sil.w * 0.5 : sil.x1 + sil.w * 0.5, x1 = d > 0 ? sil.x1 + sil.w * 0.3 : sil.x0 - sil.w * 0.3;
+  ropeStart(x0, y, -d);
+  rope.auto = { t: 0, dur: 0.26, x0: x0, y0: y, x1: x1, y1: y + sil.h * 0.05, lift: sil.h * 0.06 };
+}
+function fxStep(dt) {
+  st.t += dt;
+  var i;
+  if (rope.on) {
+    var a = rope.auto;
+    if (a) {
+      a.t += dt;
+      var u = Math.min(1, a.t / a.dur), e = u * u * (3 - 2 * u);
+      rope.tx = a.x0 + (a.x1 - a.x0) * e; rope.ty = a.y0 + (a.y1 - a.y0) * e - Math.sin(u * Math.PI) * a.lift;
+      if (a.t > a.dur + 0.3) {
+        if (!rope.hits) hit(0.6, a.x1 > a.x0 ? 1 : -1, sil.cx, (sil.yTop + sil.yShoulder) / 2);
+        rope.auto = null; rope.held = false;
+      }
+    }
+    ropeStep(dt);
+    if (!rope.held) { rope.alpha -= dt / 0.4; if (rope.alpha <= 0) { rope.on = false; rope.alpha = 0; rope.tip = 0; } }
+  }
+  for (i = sparks.length - 1; i >= 0; i--) {
+    var s = sparks[i]; s.life += dt;
+    if (s.life >= s.max) { sparks.splice(i, 1); continue; }
+    s.vy += 1500 * dt; s.vx *= Math.exp(-dt * 2.5); s.x += s.vx * dt; s.y += s.vy * dt;
+  }
+  for (i = flashes.length - 1; i >= 0; i--) { flashes[i].life += dt; if (flashes[i].life >= flashes[i].max) flashes.splice(i, 1); }
+  st.pulse *= Math.exp(-dt / 0.35);
+  if (whooshGain && soundOn) {
+    var lv = rope.on ? Math.min(1, rope.tip / 9) * rope.alpha : 0;
+    whooshGain.gain.setTargetAtTime(lv * lv * 0.22, actx.currentTime, 0.04);
+    whooshFilter.frequency.setTargetAtTime(500 + 2600 * lv, actx.currentTime, 0.04);
+  }
+}
+function stroke(x0, y0, x1, y1, color, width) {
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke();
+}
+function drawFx() {
+  if (!rope.on && !sparks.length && !flashes.length) {
+    if (fxDirty) { ctx.clearRect(0, 0, W, H); fxDirty = false; }
+    return;
+  }
+  fxDirty = true;
+  var i, t;
+  /* fade what was drawn last frame instead of clearing it: fast motion leaves a short trail */
+  ctx.globalCompositeOperation = 'destination-out'; ctx.globalAlpha = 1;
+  ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (rope.on) {
+    var x = rope.x, y = rope.y;
+    ctx.globalAlpha = rope.alpha;
+    for (i = 0; i < RN - 1; i++) stroke(x[i], y[i], x[i + 1], y[i + 1], 'rgba(6,5,3,0.6)', 7.4 - 3.3 * i / (RN - 2));
+    for (i = 0; i < RN - 1; i++) {
+      t = i / (RN - 2);
+      stroke(x[i], y[i], x[i + 1], y[i + 1], 'rgb(' + Math.round(196 + 59 * t) + ',' + Math.round(160 + 82 * t) + ',' + Math.round(96 + 110 * t) + ')', 4.4 - 3.3 * t);
+    }
+    var bx = rope.hx, by = rope.hy, ex = x[0], ey = y[0], fx1 = bx + (ex - bx) * 0.72, fy1 = by + (ey - by) * 0.72;
+    stroke(bx, by, ex, ey, '#120c05', 11);
+    stroke(bx, by, ex, ey, '#7b4f22', 7.5);
+    stroke(bx + (ex - bx) * 0.08, by + (ey - by) * 0.08, fx1, fy1, '#a8713a', 2.2);
+    stroke(fx1, fy1, ex, ey, '#e6c96e', 8);
+  }
+  ctx.globalCompositeOperation = 'lighter';
+  for (i = 0; i < sparks.length; i++) {
+    var s = sparks[i], k = 1 - s.life / s.max;
+    ctx.globalAlpha = k;
+    stroke(s.x, s.y, s.x - s.vx * 0.02, s.y - s.vy * 0.02, 'rgb(255,' + Math.round(170 + 70 * k) + ',' + Math.round(70 + 120 * k) + ')', 1.2 + 1.2 * k);
+  }
+  for (i = 0; i < flashes.length; i++) {
+    var fl = flashes[i], q1 = 1 - fl.life / fl.max, r = fl.r * (0.55 + 0.75 * (1 - q1));
+    var gr = ctx.createRadialGradient(fl.x, fl.y, 0, fl.x, fl.y, r);
+    gr.addColorStop(0, 'rgba(255,246,214,0.95)'); gr.addColorStop(0.35, 'rgba(255,214,120,0.45)'); gr.addColorStop(1, 'rgba(255,200,90,0)');
+    ctx.globalAlpha = q1; ctx.fillStyle = gr;
+    ctx.beginPath(); ctx.arc(fl.x, fl.y, r, 0, TAU); ctx.fill();
+    stroke(fl.x - r * 1.5, fl.y, fl.x + r * 1.5, fl.y, 'rgba(255,240,200,0.8)', 1.4);
+    stroke(fl.x, fl.y - r * 0.9, fl.x, fl.y + r * 0.9, 'rgba(255,240,200,0.6)', 1.2);
+  }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
 }
 
 /* ---------- 6. Controls ---------- */
-['crystal', 'gold', 'section'].forEach(function (k) { $('m-' + k).addEventListener('click', function () { setMode(k); }); });
 $('speed').addEventListener('input', function (e) { setSpeed(+e.target.value); });
 $('side').addEventListener('click', function () {
   var on = $('side').getAttribute('aria-pressed') !== 'true';
@@ -426,13 +647,36 @@ $('side').addEventListener('click', function () {
   $('side').setAttribute('aria-pressed', String(on));
 });
 
-var pointers = {}, pinch = 0, lastMove = 0;
+$('whip').addEventListener('click', function () { userActed = true; audioInit(); autoLash(); });
+$('snd').addEventListener('click', function () { setSound(!soundOn); if (soundOn) audioInit(); });
+window.addEventListener('keydown', function (e) {
+  if (e.code !== 'Space' || e.repeat) return;
+  var tag = e.target && e.target.tagName;
+  if (tag === 'BUTTON' || tag === 'INPUT') return;
+  e.preventDefault(); userActed = true; audioInit(); autoLash();
+});
+
+/* Pointer: press on the top (or beside its body) and you are holding the whip; press anywhere else and you turn the view. */
+var WHIP_CURSOR = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'28\' height=\'28\' viewBox=\'0 0 28 28\'%3E%3Cg fill=\'none\' stroke-linecap=\'round\'%3E%3Cpath d=\'M5 23L14 12\' stroke=\'%23000\' stroke-width=\'5.5\'/%3E%3Cpath d=\'M14 12C18 4 26 6 22 12C20 15 24 17 25 14\' stroke=\'%23000\' stroke-width=\'3.4\'/%3E%3Cpath d=\'M5 23L14 12\' stroke=\'%23e6c96e\' stroke-width=\'3\'/%3E%3Cpath d=\'M14 12C18 4 26 6 22 12C20 15 24 17 25 14\' stroke=\'%23f2ebd9\' stroke-width=\'1.5\'/%3E%3C/g%3E%3C/svg%3E") 5 23, crosshair';
+var pointers = {}, pinch = 0, lastMove = 0, drag = null, userActed = false;
+function localXY(e) { var r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+function idleCursor(e) { var p = localXY(e); canvas.style.cursor = zoneAt(p.x, p.y) === 'whip' ? WHIP_CURSOR : 'grab'; }
 canvas.addEventListener('pointerdown', function (e) {
   try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
-  pointers[e.pointerId] = { x: e.clientX, y: e.clientY }; st.azVel = 0; pinch = 0;
+  userActed = true;
+  pointers[e.pointerId] = { x: e.clientX, y: e.clientY }; pinch = 0;
+  if (Object.keys(pointers).length > 1) {           /* a second finger: pinch to zoom, let go of the whip */
+    if (drag === 'whip') rope.held = false;
+    drag = 'pinch'; return;
+  }
+  var p = localXY(e);
+  drag = zoneAt(p.x, p.y);
+  if (drag === 'whip') { audioInit(); ropeStart(p.x, p.y, p.x < sil.cx ? -1 : 1); canvas.style.cursor = 'none'; }
+  else { st.azVel = 0; canvas.style.cursor = 'grabbing'; }
 });
 canvas.addEventListener('pointermove', function (e) {
-  var p = pointers[e.pointerId]; if (!p) return;
+  var p = pointers[e.pointerId];
+  if (!p) { if (e.pointerType === 'mouse') idleCursor(e); return; }
   var ids = Object.keys(pointers), dx = e.clientX - p.x, dy = e.clientY - p.y;
   p.x = e.clientX; p.y = e.clientY;
   if (ids.length >= 2) {
@@ -440,13 +684,24 @@ canvas.addEventListener('pointermove', function (e) {
     if (pinch > 0) st.zoom = Math.min(1.9, Math.max(0.55, st.zoom * pinch / dist));
     pinch = dist; return;
   }
+  if (drag === 'whip') { var h = localXY(e); rope.tx = h.x; rope.ty = h.y; return; }
+  if (drag !== 'orbit') return;
   st.az += dx * 0.008; st.azVel = dx * 0.008 * 60; lastMove = e.timeStamp;
   if (Math.abs(dy) > 0) {
     st.el = Math.min(1.35, Math.max(-0.2, st.el + dy * 0.006)); st.elT = null;
     $('side').setAttribute('aria-pressed', String(Math.abs(st.el) < 0.012));
   }
 });
-function release(e) { delete pointers[e.pointerId]; pinch = 0; if (e.timeStamp - lastMove > 90) st.azVel = 0; }
+function release(e) {
+  if (!pointers[e.pointerId]) return;
+  delete pointers[e.pointerId]; pinch = 0;
+  if (Object.keys(pointers).length) return;
+  audioInit();                                      /* touch only counts as a gesture once the finger lifts */
+  if (drag === 'whip') rope.held = false;
+  else if (drag === 'orbit' && e.timeStamp - lastMove > 90) st.azVel = 0;
+  drag = null;
+  if (e.pointerType === 'mouse') idleCursor(e); else canvas.style.cursor = 'grab';
+}
 canvas.addEventListener('pointerup', release);
 canvas.addEventListener('pointercancel', release);
 canvas.addEventListener('wheel', function (e) {
@@ -457,6 +712,8 @@ canvas.addEventListener('wheel', function (e) {
 function resize() {
   var w = stageEl.clientWidth || 1, h = stageEl.clientHeight || 1;
   renderer.setSize(w, h, false);
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = w; H = h; fx.width = Math.round(w * dpr); fx.height = Math.round(h * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   camera.aspect = w / h; camera.updateProjectionMatrix();
   var tanV = Math.tan(camera.fov * DEG / 2);
   st.baseDist = Math.max(1.72 / tanV, 1.42 / (tanV * camera.aspect));
@@ -469,7 +726,7 @@ resize();
 function platePass(kind, weight) {
   for (var k = 0; k < 2; k++) {
     var m = plateMats[k];
-    if (kind === 'normal') { m.opacity = k === 1 ? weight : 1; m.blending = T3.NormalBlending; m.depthFunc = T3.LessEqualDepth; m.depthWrite = true; m.colorWrite = true; }
+    if (kind === 'normal') { m.opacity = 1; m.blending = T3.NormalBlending; m.depthFunc = T3.LessEqualDepth; m.depthWrite = true; m.colorWrite = true; }
     else if (kind === 'none') { m.depthWrite = false; m.colorWrite = false; }
     else if (kind === 'depth') { m.opacity = weight; m.blending = T3.AdditiveBlending; m.depthFunc = T3.LessEqualDepth; m.depthWrite = true; m.colorWrite = false; }
     else { m.opacity = weight; m.blending = T3.AdditiveBlending; m.depthFunc = T3.EqualDepth; m.depthWrite = false; m.colorWrite = true; }
@@ -479,16 +736,12 @@ var Y_AXIS = new T3.Vector3(0, 1, 0), axisDir = new T3.Vector3();
 
 function draw(phiFrom, phiTo) {
   var sweep = Math.min(Math.abs(phiTo - phiFrom), HALF_PI);
-  var K = st.mode === 'crystal' ? Math.min(18, Math.max(1, Math.ceil(sweep / (2.5 * DEG)))) : 1;
+  var K = Math.min(18, Math.max(1, Math.ceil(sweep / (2.5 * DEG))));
   renderer.shadowMap.needsUpdate = true;
   renderer.clear();
   if (K === 1) {
-    /* outside crystal mode the plates only show as thin seams; let them fade once they would strobe */
-    var seam = st.mode === 'crystal' ? 1 : 1 - Math.min(1, Math.max(0, (sweep / DEG - 6) / 8));
-    plates.visible = seam > 0.01;
-    spin.rotation.y = phiTo; platePass('normal', seam);
+    spin.rotation.y = phiTo; platePass('normal');
     renderer.render(scene, camera);
-    plates.visible = true;
     return;
   }
   /* motion blur: average K sub-frames of the plates, additively, each with its own depth */
@@ -506,33 +759,42 @@ function draw(phiFrom, phiTo) {
   renderer.clearDepth();
   renderer.render(scene, camera);
   plates.visible = true; floorG.visible = true; shadowCatcher.visible = true;
-  platePass('normal', 1);
+  platePass('normal');
 }
 
 function step(dt) {
   var phiFrom = st.phi;
   if (!st.frozen) {
-    if (st.omegaT === 0) {
+    if (st.alignTo !== null) {
       /* coming to rest: glide to the nearest pose where a plate squarely faces the viewer */
-      if (st.alignTo === null) {
-        st.alignTo = Math.round((st.phi + st.omega * 0.45 + st.az) / HALF_PI) * HALF_PI - st.az;
-        if (st.alignTo < st.phi && st.omega > 0.3) st.alignTo += HALF_PI;
-        st.alignT = st.omega > 0.3 ? Math.min(1.2, Math.max(0.25, (st.alignTo - st.phi) / st.omega)) : 0.35;
-      }
       st.phi += (st.alignTo - st.phi) * (1 - Math.exp(-dt / st.alignT));
       st.omega = Math.abs(st.alignTo - st.phi) / st.alignT;
     } else {
-      st.omega += (st.omegaT - st.omega) * (1 - Math.exp(-dt / 0.45));
+      /* the slider is a motor holding a cruising speed; each lash adds a boost that friction wears away */
+      st.motor += (st.omegaT - st.motor) * (1 - Math.exp(-dt / 0.45));
+      if (st.boost > 0) st.boost = Math.max(0, st.boost - (0.25 * st.boost + 0.5) * dt);
+      st.omega = st.motor + st.boost;
       st.phi += st.omega * dt;
+      if (st.omegaT === 0 && st.omega < 1.2) {
+        st.alignTo = Math.round((st.phi + st.omega * 0.45 + st.az) / HALF_PI) * HALF_PI - st.az;
+        if (st.alignTo < st.phi && st.omega > 0.3) st.alignTo += HALF_PI;
+        st.alignT = st.omega > 0.3 ? Math.min(1.2, Math.max(0.25, (st.alignTo - st.phi) / st.omega)) : 0.35;
+        st.motor = st.boost = 0;
+      }
     }
   }
 
   /* gentle precession: a little lean at low speed, almost upright when fast */
-  var wob = (st.mode === 'section' || reduceMotion || st.frozen) ? 0 : 2.0 * DEG * (st.omega / (st.omega + 1.5)) / (1 + st.omega / 14);
+  var wob = (reduceMotion || st.frozen) ? 0 : 2.0 * DEG * (st.omega / (st.omega + 1.5)) / (1 + st.omega / 14);
   st.tau += (wob - st.tau) * (1 - Math.exp(-dt * 3));
   st.psi += dt * (0.35 + 1.6 / (1 + st.omega / 6));
-  axisDir.set(Math.sin(st.tau) * Math.cos(st.psi), Math.cos(st.tau), Math.sin(st.tau) * Math.sin(st.psi));
+  /* a lash also knocks the top: a quick nutation and a small shove that springs back */
+  st.nut *= Math.exp(-dt / 0.5); st.nutPh += dt * (14 + 0.2 * st.omega);
+  st.slideV += (-130 * st.slide - 14 * st.slideV) * dt; st.slide += st.slideV * dt;
+  var ca = Math.cos(st.az), sa = Math.sin(st.az), nx = st.nut * Math.cos(st.nutPh), nz = st.nut * Math.sin(st.nutPh);
+  axisDir.set(Math.sin(st.tau) * Math.cos(st.psi) + nx * ca - nz * sa, 1, Math.sin(st.tau) * Math.sin(st.psi) + nx * sa + nz * ca).normalize();
   tilt.quaternion.setFromUnitVectors(Y_AXIS, axisDir);
+  tilt.position.set(st.slide * ca, 0, st.slide * sa);
 
   /* view */
   if (!Object.keys(pointers).length) { st.az += st.azVel * dt; st.azVel *= Math.exp(-dt * 4); }
@@ -541,26 +803,45 @@ function step(dt) {
   var dist = st.baseDist * st.zoom;
   camera.position.set(0, TARGET.y + dist * Math.sin(st.el), dist * Math.cos(st.el));
   camera.lookAt(TARGET);
+  camera.updateMatrixWorld(); updateSilhouette();
+  floor.material.uniforms.uGlow.value = 0.45 * Math.min(1, st.omega / OMEGA_MAX) + st.pulse;
   return phiFrom;
 }
 
-var last = 0;
+function tick(dt) { var phiFrom = step(dt); fxStep(dt); return phiFrom; }
+
+var last = 0, t0 = 0, demoDone = false, gaugeV = -1, gaugeTxt = '';
 function frame(now) {
   requestAnimationFrame(frame);
   var dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016); last = now;
-  var phiFrom = step(dt);
+  if (!t0) t0 = now;
+  if (!demoDone && now - t0 > 1700) {               /* show once what the whip does, unless the visitor got there first */
+    demoDone = true;
+    if (!userActed && !reduceMotion && !st.frozen && q.get('demo') !== '0') autoLash();
+  }
+  var phiFrom = tick(dt);
   draw(phiFrom, st.phi);
+  drawFx();
+  /* speedometer: track fill and readout follow the actual speed */
+  var v = Math.round(1000 * Math.pow(Math.min(1, st.omega / OMEGA_MAX), 1 / 2.2)) / 10, rps = st.omega / TAU;
+  var txt = rps < 0.02 ? '停' : (rps < 1 ? rps.toFixed(2) : rps.toFixed(1)) + ' 圈/秒';
+  if (v !== gaugeV) { gaugeV = v; $('speed').style.setProperty('--live', v + '%'); }
+  if (txt !== gaugeTxt) { gaugeTxt = txt; $('rps').textContent = txt; }
 }
 
 /* ---------- 8. Start ---------- */
-var startMode = q.get('mode') || 'crystal';
-setMode(NOTES[startMode] ? startMode : 'crystal');
-var startSpeed = qn('speed', reduceMotion ? 14 : 27);
+var startSpeed = qn('speed', reduceMotion ? 14 : 25);
 $('speed').value = startSpeed; setSpeed(startSpeed);
 st.az = qn('az', 0) * DEG; st.el = qn('el', 13) * DEG; st.zoom = qn('zoom', 1);
 st.phi = -st.az;                        /* first frame: a plate squarely faces the viewer, then it spins up */
 if (q.get('phi') !== null) { st.frozen = true; st.phi = qn('phi', 0) * DEG - st.az; }
-for (i = qn('ff', 0); i > 0; i--) step(1 / 60);   /* test hook: fast-forward the simulation */
+setSound(soundOn);
+tick(1e-3);                                         /* places the camera and measures the silhouette */
+/* test hooks: ?hits=N lands N lashes, ?auto=1 throws a lash, ?ff=N fast-forwards N frames, ?debug=1 exposes the state */
+for (i = qn('hits', 0); i > 0; i--) hit(0.8, 1, sil.cx, sil.cy);
+if (q.get('auto') === '1') { demoDone = true; autoLash(); }
+for (i = qn('ff', 0); i > 0; i--) tick(1 / 60);
+if (q.get('debug') === '1') window.__top = { tick: tick, st: st, rope: rope, sil: sil, zoneAt: zoneAt };
 $('side').setAttribute('aria-pressed', String(Math.abs(st.el) < 0.012));
 requestAnimationFrame(frame);
 })();
