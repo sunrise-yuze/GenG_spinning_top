@@ -14,13 +14,14 @@
   --ink:#0a0907;            /* stage black, warm */
   --panel:rgba(21,18,12,.84);
   --line:#3a3120;           /* hairlines */
-  --gold:#aa8b30;           /* Gen.G gold */
-  --gold-hi:#e6c96e;        /* lit gold */
+  --accent:#aa8b30;         /* the selected team's colour: Gen.G gold by default */
+  --accent-hi:#e6c96e;      /* the same colour, lit */
   --paper:#f2ebd9;          /* text */
   --mute:#a2977b;           /* secondary text */
   --display:"Chakra Petch","PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
   --body:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
+#stage[data-team="tes"]{--accent:#e23c22;--accent-hi:#ff8266;--line:#40261f}   /* Top Esports red */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--body);font-size:14px;line-height:1.5;overflow:hidden;-webkit-font-smoothing:antialiased}
@@ -31,62 +32,68 @@ body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--body);f
 .mast{position:absolute;inset:0 0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
   padding-block:18px 0;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));pointer-events:none}
 .brand{display:flex;align-items:center;gap:12px;min-width:0}
-.brand svg{width:34px;height:auto;flex:none}
+.brand svg{width:36px;height:36px;flex:none;fill:var(--accent)}
 h1{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(20px,2.6vw,28px);letter-spacing:.06em;line-height:1.1;white-space:nowrap}
-h1 b{font-family:var(--body);font-weight:700;color:var(--gold-hi);letter-spacing:.12em;margin-left:.2em}
+h1 b{font-family:var(--body);font-weight:700;color:var(--accent-hi);letter-spacing:.12em;margin-left:.2em}
 .brand p{margin:3px 0 0;font-size:12px;color:var(--mute);letter-spacing:.1em}
 .aside{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
 .credits{margin:3px 0 0;text-align:right;font-size:11px;line-height:1.75;color:var(--mute);letter-spacing:.08em}
 .snd{pointer-events:auto;padding:2px 9px;border:1px solid var(--line);font-size:11px;letter-spacing:.1em;color:var(--mute)}
-.snd[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-hi)}
+.snd[aria-pressed="true"]{border-color:var(--accent);color:var(--accent-hi)}
 
 .foot{position:absolute;inset:auto 0 0;display:flex;flex-direction:column;align-items:center;gap:12px;
   padding-block:0 18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:none}
 .dock{pointer-events:auto;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 18px;padding:10px 14px;
   background:var(--panel);border:1px solid var(--line);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 button{font:inherit;color:inherit;background:none;border:0;margin:0;cursor:pointer}
-:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
+:focus-visible{outline:2px solid var(--accent-hi);outline-offset:2px}
+.teams{display:flex;border:1px solid var(--line)}
+.teams button{padding:7px 13px;font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.08em;color:var(--mute);transition:background .15s,color .15s}
+.teams button + button{border-left:1px solid var(--line)}
+.teams button:hover{color:var(--paper)}
+.teams button[aria-pressed="true"]{background:var(--accent);color:var(--ink)}
 .speed{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:12px;letter-spacing:.14em}
 .speed .rps{font-family:var(--display);font-size:13px;letter-spacing:.04em;color:var(--paper);min-width:5.2em;font-variant-numeric:tabular-nums}
 input[type=range]{-webkit-appearance:none;appearance:none;width:clamp(110px,20vw,190px);height:24px;margin:0;background:none;cursor:pointer}
-/* the track doubles as a speedometer: it fills to the top's actual speed, while the thumb marks the cruising speed */
-input[type=range]::-webkit-slider-runnable-track{height:3px;background:linear-gradient(90deg,var(--gold) var(--live,25%),var(--line) var(--live,25%))}
-input[type=range]::-moz-range-track{height:3px;background:linear-gradient(90deg,var(--gold) var(--live,25%),var(--line) var(--live,25%))}
-/* slider thumb is the emblem's own outline: flat top, 45-degree point */
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:16px;margin-top:-7px;background:var(--gold-hi);clip-path:polygon(0 0,100% 0,100% 52%,50% 100%,0 52%)}
-input[type=range]::-moz-range-thumb{width:14px;height:16px;border:0;border-radius:0;background:var(--gold-hi);clip-path:polygon(0 0,100% 0,100% 52%,50% 100%,0 52%)}
-.view{padding:7px 14px;border:1px solid var(--line);color:var(--mute);letter-spacing:.14em;transition:color .15s,border-color .15s}
-.view:hover{color:var(--paper)}
-.view[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-hi)}
-.whips{display:flex;border:1px solid var(--gold)}
-.whips button{display:flex;align-items:center;gap:7px;padding:7px 14px;background:var(--gold);color:var(--ink);font-weight:700;letter-spacing:.14em;transition:background .15s,transform .08s}
+/* the slider is the speedometer: the thumb sits at the top's actual speed, and dragging it sets that speed by hand */
+input[type=range]::-webkit-slider-runnable-track{height:3px;background:linear-gradient(90deg,var(--accent) var(--live,0%),var(--line) var(--live,0%))}
+input[type=range]::-moz-range-track{height:3px;background:linear-gradient(90deg,var(--accent) var(--live,0%),var(--line) var(--live,0%))}
+/* slider thumb is an emblem outline: flat top, 45-degree point */
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:16px;margin-top:-7px;background:var(--accent-hi);clip-path:polygon(0 0,100% 0,100% 52%,50% 100%,0 52%)}
+input[type=range]::-moz-range-thumb{width:14px;height:16px;border:0;border-radius:0;background:var(--accent-hi);clip-path:polygon(0 0,100% 0,100% 52%,50% 100%,0 52%)}
+.spin{width:30px;height:20px;flex:none;fill:none;stroke:var(--accent-hi);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s}
+.spin .head{fill:var(--accent-hi);stroke:none}
+.whips{display:flex;border:1px solid var(--accent)}
+.whips button{display:flex;align-items:center;gap:7px;padding:7px 14px;background:var(--accent);color:var(--ink);font-weight:700;letter-spacing:.14em;transition:background .15s,transform .08s}
 .whips button + button{border-left:1px solid var(--ink)}
-.whips button:hover{background:var(--gold-hi)}
+.whips button:hover{background:var(--accent-hi)}
 .whips button:active{transform:translateY(1px)}
 .whips svg{width:7px;height:10px;flex:none;fill:currentColor}
-.spin{width:30px;height:20px;flex:none;fill:none;stroke:var(--gold-hi);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s}
-.spin .head{fill:var(--gold-hi);stroke:none}
+.view{padding:7px 14px;border:1px solid var(--line);color:var(--mute);letter-spacing:.14em;transition:color .15s,border-color .15s}
+.view:hover{color:var(--paper)}
+.view[aria-pressed="true"]{border-color:var(--accent);color:var(--accent-hi)}
 #fallback{position:absolute;inset:0;margin:auto;height:max-content;max-width:26em;padding:0 20px;text-align:center;color:var(--mute)}
 .no-ui .mast,.no-ui .foot{display:none}
 @media (max-width:520px){
   .credits{font-size:10px}
-  .brand svg{width:28px}
+  .brand svg{width:30px;height:30px}
 }
 </style>
 </head>
 <body>
-<div id="stage">
-  <canvas id="gl" aria-label="由 Gen.G 队徽旋转而成的三维陀螺，正在自转；在陀螺上向左或向右快速划过可以抽鞭，顺着转向加速，逆着转向减速或反转"></canvas>
+<div id="stage" data-team="geng">
+  <canvas id="gl" aria-label="由战队队徽旋转而成的三维陀螺；在陀螺上向左或向右快速划过可以抽鞭，顺着转向加速，逆着转向减速或反转，不抽它会自己慢慢停下"></canvas>
   <canvas id="fx" aria-hidden="true"></canvas>
 
   <div class="mast">
     <div class="brand">
-      <svg viewBox="0.6 21.6 66.95 57.6" aria-hidden="true">
-        <path id="half" fill="#aa8b30" d="m1.83 22.321h28.684c0.27528 0 0.51385 0.22022 0.51385 0.51386v8.9374c0 0.27528-0.22022 0.51386-0.51385 0.51386h-18.737c-0.27528 0-0.51386 0.22022-0.51386 0.51386v12.424c0 0.12846 0.0551 0.25693 0.14682 0.36704l8.7906 8.8273c0.33033 0.33034 0.88089 0.09176 0.88089-0.36704v-8.4052c0-0.12846-0.0551-0.25693-0.14682-0.36704l-5.1752-5.2303c-0.31199-0.33034-0.0918-0.86254 0.36704-0.86254h14.388c0.27528 0 0.51385 0.23857 0.51385 0.51386v38.227c0 0.4588-0.55055 0.67902-0.88089 0.36704l-28.666-28.556c-0.0918-0.09176-0.14682-0.22022-0.14682-0.36704v-26.537c-0.0184-0.27528 0.22023-0.51386 0.49551-0.51386"/>
+      <svg id="markG" viewBox="0.6 21.6 66.95 57.6" aria-hidden="true">
+        <path id="half" d="m1.83 22.321h28.684c0.27528 0 0.51385 0.22022 0.51385 0.51386v8.9374c0 0.27528-0.22022 0.51386-0.51385 0.51386h-18.737c-0.27528 0-0.51386 0.22022-0.51386 0.51386v12.424c0 0.12846 0.0551 0.25693 0.14682 0.36704l8.7906 8.8273c0.33033 0.33034 0.88089 0.09176 0.88089-0.36704v-8.4052c0-0.12846-0.0551-0.25693-0.14682-0.36704l-5.1752-5.2303c-0.31199-0.33034-0.0918-0.86254 0.36704-0.86254h14.388c0.27528 0 0.51385 0.23857 0.51385 0.51386v38.227c0 0.4588-0.55055 0.67902-0.88089 0.36704l-28.666-28.556c-0.0918-0.09176-0.14682-0.22022-0.14682-0.36704v-26.537c-0.0184-0.27528 0.22023-0.51386 0.49551-0.51386"/>
         <use href="#half" transform="matrix(-1 0 0 1 68.1484 0)"/>
       </svg>
+      <svg id="markT" viewBox="-1.06 -0.06 2.12 2.87" aria-hidden="true" hidden><path id="tesPath" d=""/></svg>
       <div>
-        <h1>GEN.G<b>陀螺</b></h1>
+        <h1><span id="team">GEN.G</span><b>陀螺</b></h1>
         <p>队徽绕中轴转一圈</p>
       </div>
     </div>
@@ -98,8 +105,12 @@ input[type=range]::-moz-range-thumb{width:14px;height:16px;border:0;border-radiu
 
   <div class="foot" id="foot">
     <div class="dock">
+      <div class="teams" role="group" aria-label="换陀螺">
+        <button type="button" id="t-geng" aria-pressed="true">GEN.G</button>
+        <button type="button" id="t-tes" aria-pressed="false">TES</button>
+      </div>
       <label class="speed" for="speed">
-        <input type="range" id="speed" min="0" max="100" step="1" value="25" aria-label="巡航转速">
+        <input type="range" id="speed" min="0" max="100" step="0.5" value="0" aria-label="转速，拖动可以直接设定">
         <svg class="spin" id="dir" viewBox="0 0 30 20" aria-hidden="true"><path d="M19.5 13.9C24.5 13 28 11 28 8.6 28 5.5 22.2 3 15 3S2 5.5 2 8.6c0 2.5 3.8 4.6 9 5.4"/><path class="head" d="M11 10.4l7 4-7 4z"/></svg>
         <span class="rps" id="rps" aria-hidden="true"></span>
       </label>
@@ -108,6 +119,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:16px;border:0;border-radiu
         <button type="button" id="whipR" aria-label="向右抽一鞭" title="也可以按 → 键">抽<svg viewBox="0 0 8 10" aria-hidden="true"><path d="M0 0l8 5-8 5z"/></svg></button>
       </div>
       <button type="button" class="view" id="side" aria-pressed="false">正侧面</button>
+      <button type="button" class="view" id="glass" aria-pressed="true" title="开：透明水晶外壳；关：磨砂纯色">水晶</button>
     </div>
   </div>
 
@@ -142,7 +154,9 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = T3.PCFSoftShadowMap;
 renderer.setClearColor(0x0a0907, 1);
 
-/* ---------- 1. The emblem half, read straight from the SVG in the masthead ---------- */
+/* ---------- 1. Two emblems, each reduced to its right half: a closed outline in (radius, height) ----------
+   Every outline point starts a segment of one kind: 'o' faces the outside world, 'i' lines a cavity,
+   'a' lies on the axis and makes no surface. Heights start at the tip; the tops are sized in world units. */
 function parsePath(d) {
   var tok = d.match(/[a-zA-Z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g), i = 0, cmd = '', x = 0, y = 0, out = [];
   function num() { return parseFloat(tok[i++]); }
@@ -157,74 +171,69 @@ function parsePath(d) {
   }
   return out;
 }
-var segs = parsePath($('half').getAttribute('d'));
-var XC = 34.0742;                       /* the emblem's mirror axis, in SVG units */
-var CN = 7, raw = [];
-segs.forEach(function (s, si) {
-  if (s.length === 2) { raw.push({ x: s[0][0], y: s[0][1], seg: si }); return; }
-  for (var k = 0; k < CN; k++) {
-    var t = k / CN, u = 1 - t;
-    raw.push({
-      x: u * u * u * s[0][0] + 3 * u * u * t * s[1][0] + 3 * u * t * t * s[2][0] + t * t * t * s[3][0],
-      y: u * u * u * s[0][1] + 3 * u * u * t * s[1][1] + 3 * u * t * t * s[2][1] + t * t * t * s[3][1],
-      seg: si
-    });
-  }
-});
-var minX = Infinity, maxY = -Infinity, minY = Infinity;
-raw.forEach(function (p) { minX = Math.min(minX, p.x); maxY = Math.max(maxY, p.y); minY = Math.min(minY, p.y); });
-var S = XC - minX;                      /* outer radius becomes 1 */
-var P = raw.map(function (p) { return { r: (XC - p.x) / S, y: (maxY - p.y) / S, seg: p.seg }; });
-var n = P.length, HEIGHT = (maxY - minY) / S;
 
-var area = 0, i;
-for (i = 0; i < n; i++) { var pa = P[i], pb = P[(i + 1) % n]; area += pa.r * pb.y - pb.r * pa.y; }
-var orient = area > 0 ? 1 : -1;
-var segN = [];
-for (i = 0; i < n; i++) {
-  var a0 = P[i], b0 = P[(i + 1) % n], tx = b0.r - a0.r, ty = b0.y - a0.y, tl = Math.sqrt(tx * tx + ty * ty) || 1;
-  segN.push({ r: orient * ty / tl, y: -orient * tx / tl });
-}
-var nStart = [], nEnd = [];
-for (i = 0; i < n; i++) {
-  var pi = (i - 1 + n) % n, prev = segN[pi], cur = segN[i];
-  if (prev.r * cur.r + prev.y * cur.y > 0.82) {
-    var mr = prev.r + cur.r, my = prev.y + cur.y, ml = Math.sqrt(mr * mr + my * my);
-    nStart[i] = nEnd[pi] = { r: mr / ml, y: my / ml };
-  } else { nStart[i] = cur; nEnd[pi] = prev; }
-}
-/* path segments that face the outside world: top face, tip, cone, outer wall and their fillets */
-var OUTER = { 0: 1, 1: 1, 17: 1, 18: 1, 19: 1, 20: 1, 21: 1 };
-
-function buildLathe(wantOuter) {
-  var RS = 192, pos = [], nor = [], idx = [];
-  for (var i = 0; i < n; i++) {
-    if (!!OUTER[P[i].seg] !== wantOuter) continue;
-    var p0 = P[i], p1 = P[(i + 1) % n], ns = nStart[i], ne = nEnd[i], base = pos.length / 3;
-    for (var j = 0; j <= RS; j++) {
-      var ang = j / RS * TAU, c = Math.cos(ang), s = Math.sin(ang);
-      pos.push(p0.r * c, p0.y, p0.r * s); nor.push(ns.r * c, ns.y, ns.r * s);
-      pos.push(p1.r * c, p1.y, p1.r * s); nor.push(ne.r * c, ne.y, ne.r * s);
+/* Gen.G: read straight from the SVG path in the masthead */
+function gengDef() {
+  var segs = parsePath($('half').getAttribute('d'));
+  var XC = 34.0742, CN = 7, raw = [];           /* XC: the emblem's mirror axis, in SVG units */
+  segs.forEach(function (s, si) {
+    if (s.length === 2) { raw.push({ x: s[0][0], y: s[0][1], seg: si }); return; }
+    for (var k = 0; k < CN; k++) {
+      var t = k / CN, u = 1 - t;
+      raw.push({
+        x: u * u * u * s[0][0] + 3 * u * u * t * s[1][0] + 3 * u * t * t * s[2][0] + t * t * t * s[3][0],
+        y: u * u * u * s[0][1] + 3 * u * u * t * s[1][1] + 3 * u * t * t * s[2][1] + t * t * t * s[3][1],
+        seg: si
+      });
     }
-    for (j = 0; j < RS; j++) {
-      var a = base + 2 * j, b = a + 1, d = a + 2, e = a + 3;
-      if (orient > 0) idx.push(a, b, d, b, e, d); else idx.push(a, d, b, b, d, e);
-    }
-  }
-  var g = new T3.BufferGeometry();
-  g.setAttribute('position', new T3.Float32BufferAttribute(pos, 3));
-  g.setAttribute('normal', new T3.Float32BufferAttribute(nor, 3));
-  g.setIndex(new T3.BufferAttribute(new Uint32Array(idx), 1));
-  return g;
+  });
+  var minX = Infinity, maxY = -Infinity, minY = Infinity, rMin = Infinity;
+  raw.forEach(function (p) { minX = Math.min(minX, p.x); maxY = Math.max(maxY, p.y); minY = Math.min(minY, p.y); });
+  var S = XC - minX;                            /* outer radius becomes 1 */
+  /* path segments that face outward: top face, tip, cone, outer wall and their fillets */
+  var OUTER = { 0: 1, 1: 1, 17: 1, 18: 1, 19: 1, 20: 1, 21: 1 };
+  var pts = raw.map(function (p) {
+    var r = (XC - p.x) / S; rMin = Math.min(rMin, r);
+    return { r: r, y: (maxY - p.y) / S, kind: OUTER[p.seg] ? 'o' : 'i' };
+  });
+  var H = (maxY - minY) / S, sh = (maxY - 49.74) / S;   /* sh: where the wall turns into the cone */
+  return {
+    id: 'geng', name: 'GEN.G', pts: pts, height: H, radius: 1, lid: true,
+    thick: 2 * rMin,                            /* each plate is exactly as thick as the emblem's centre slit */
+    body: [sh, H], sil: [[-1, H], [1, H], [1, sh], [0.1, 0], [-0.1, 0], [-1, sh]],
+    color: 0xd2a63c, rim: [1.0, 0.80, 0.42], ring: 0xaa8b30, tint: 0xa9862c, look: 'crystal'
+  };
 }
-var outerGeo = buildLathe(true), innerGeo = buildLathe(false);
 
-var shape = new T3.Shape(P.map(function (p) { return new T3.Vector2(p.r, p.y); }));
-var rMin = Infinity;
-P.forEach(function (p) { rMin = Math.min(rMin, p.r); });
-var THICK = 2 * rMin;                   /* each plate is exactly as thick as the emblem's centre slit */
-var plateGeo = new T3.ExtrudeGeometry(shape, { depth: THICK, bevelEnabled: false, steps: 1 });
-plateGeo.translate(0, 0, -THICK / 2);
+/* Top Esports: a hexagonal shield with a T cut out of it, measured off the emblem (half-width = 1, tip at 0).
+   The bar of the T becomes a closed chamber; its stem becomes a bore that runs down and out through the tip. */
+var TES_H = 2.744, TES_SLIT = 0.0977;
+/* [radius, height, kind, solid]: "solid" marks the stretches of the outer rim that sit level with solid emblem on the
+   centre line (above the bar, and between bar and stem); the rest is level with the cut-outs. See slab() below. */
+var TES_OUTLINE = [
+  [0, TES_H, 'o', 1], [1, 2.099, 'o', 1], [1, 1.798, 'o', 0], [1, 1.627, 'o', 1], [1, 1.39, 'o', 0],   /* apex, shoulder, down the wall */
+  [1, 1.223, 'o', 0],                                                      /* lower corner, then the long slope to the tip */
+  [TES_SLIT, 0, 'i'], [TES_SLIT, 1.429, 'i'], [0, 1.351, 'a'],             /* the stem: up from the tip to its notched top */
+  [0, 1.594, 'i'], [0.0907, 1.660, 'i'], [0.472, 1.660, 'i'], [0.658, 1.798, 'i'], [0, 1.798, 'a']   /* the bar */
+];
+function tesDef() {
+  var k = 0.74;                                 /* scaled so it stands about as tall on stage as the Gen.G top is wide */
+  return {
+    id: 'tes', name: 'TES', height: TES_H * k, radius: k, lid: false, thick: 2 * TES_SLIT * k,
+    pts: TES_OUTLINE.map(function (s) { return { r: s[0] * k, y: s[1] * k, kind: s[2], solid: !!s[3] }; }),
+    body: [1.223 * k, 2.099 * k],
+    sil: [[0, TES_H * k], [k, 2.099 * k], [k, 1.223 * k], [TES_SLIT * k, 0], [-TES_SLIT * k, 0], [-k, 1.223 * k], [-k, 2.099 * k]],
+    color: 0xff3e24, rim: [1.0, 0.52, 0.40], ring: 0xe23c22, tint: 0xc22a17, look: 'frost'
+  };
+}
+(function drawTesMark() {                       /* the masthead icon for TES comes from the same outline */
+  var d = '', sx, i;
+  for (sx = 1; sx >= -1; sx -= 2) {
+    for (i = 0; i < TES_OUTLINE.length; i++) d += (i ? 'L' : 'M') + (sx * TES_OUTLINE[i][0]).toFixed(3) + ' ' + (TES_H - TES_OUTLINE[i][1]).toFixed(3);
+    d += 'Z';
+  }
+  $('tesPath').setAttribute('d', d);
+})();
 
 /* ---------- 2. Studio lighting, written once in GLSL and used for both metal and crystal ---------- */
 var STUDIO = [
@@ -262,19 +271,14 @@ var scene = new T3.Scene();
 renderer.autoClear = false;
 renderer.shadowMap.autoUpdate = false;
 
-/* ---------- 3. Materials ---------- */
+/* ---------- 3. From an outline to a top: a crystal solid of revolution with two crossed emblem plates inside ---------- */
 function lin(hex) { return new T3.Color(hex).convertSRGBToLinear(); }
-var GOLD = lin(0xd2a63c);
-var plateFaceMat = new T3.MeshStandardMaterial({ color: GOLD, metalness: 1, roughness: 0.32, transparent: true });
-var plateEdgeMat = new T3.MeshStandardMaterial({ color: lin(0x1c1810), metalness: 0.4, roughness: 0.55, envMapIntensity: 0.5, transparent: true });
-var plateMats = [plateFaceMat, plateEdgeMat];
-
-function crystalMaterial(refl, rim, body) {
+function crystalMaterial(refl, rim, body, rimColor) {
   return new T3.ShaderMaterial({
     transparent: true, depthWrite: false, side: T3.DoubleSide,
     polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2,   /* glass always wins where it is flush with a plate edge */
     blending: T3.CustomBlending, blendEquation: T3.AddEquation, blendSrc: T3.OneFactor, blendDst: T3.OneMinusSrcAlphaFactor,
-    uniforms: { uRefl: { value: refl }, uRim: { value: rim }, uBody: { value: body }, uRimColor: { value: new T3.Color(1.0, 0.80, 0.42) } },
+    uniforms: { uRefl: { value: refl }, uRim: { value: rim }, uBody: { value: body }, uRimColor: { value: rimColor } },
     vertexShader: [
       'varying vec3 vN; varying vec3 vW;',
       'void main(){',
@@ -303,26 +307,146 @@ function crystalMaterial(refl, rim, body) {
     ].join('\n')
   });
 }
-var crystalOuterMat = crystalMaterial(0.8, 0.12, 0.012);
-var crystalInnerMat = crystalMaterial(0.25, 0.05, 0.004);
 
-/* ---------- 4. Scene graph: turntable > precession > spin ---------- */
+/* a matte, tinted body with no reflections at all: soft shading for form, a little denser toward the silhouette */
+function frostMaterial(tint, alpha) {
+  return new T3.ShaderMaterial({
+    /* drawn over the plates without a depth test: the body covers them evenly, even where a flat plate rim sits a hair proud of the round surface */
+    transparent: true, depthWrite: false, depthTest: false, side: T3.FrontSide,
+    blending: T3.CustomBlending, blendEquation: T3.AddEquation, blendSrc: T3.OneFactor, blendDst: T3.OneMinusSrcAlphaFactor,
+    uniforms: { uTint: { value: tint }, uAlpha: { value: alpha } },
+    vertexShader: [
+      'varying vec3 vN; varying vec3 vW;',
+      'void main(){',
+      '  vec4 wp = modelMatrix * vec4(position, 1.0);',
+      '  vW = wp.xyz; vN = mat3(modelMatrix) * normal;',
+      '  gl_Position = projectionMatrix * viewMatrix * wp;',
+      '}'
+    ].join('\n'),
+    fragmentShader: [
+      'uniform vec3 uTint; uniform float uAlpha;',
+      'varying vec3 vN; varying vec3 vW;',
+      'void main(){',
+      '  vec3 N = normalize(vN), V = normalize(cameraPosition - vW);',
+      '  float ndv = clamp(dot(N, V), 0.0, 1.0);',
+      '  float lit = 0.62 + 0.38 * clamp(dot(N, normalize(vec3(-0.45, 0.75, 0.5))), 0.0, 1.0);',
+      '  float a = clamp(uAlpha + (1.0 - uAlpha) * 0.55 * pow(1.0 - ndv, 3.0), 0.0, 1.0);',
+      '  gl_FragColor = vec4(uTint * lit * a, a);',
+      '  #include <tonemapping_fragment>',
+      '  #include <encodings_fragment>',
+      '}'
+    ].join('\n')
+  });
+}
+
+/* scene graph: turntable > precession > spin > the selected top */
 var turntable = new T3.Group(); scene.add(turntable);
 var tilt = new T3.Group(); turntable.add(tilt);
 var spin = new T3.Group(); tilt.add(spin);
 
-var shells = new T3.Group(); spin.add(shells);
-var crystalOuter = new T3.Mesh(outerGeo, crystalOuterMat), crystalInner = new T3.Mesh(innerGeo, crystalInnerMat);
-crystalOuter.renderOrder = crystalInner.renderOrder = 2;
-shells.add(crystalOuter, crystalInner);
+function makeTop(def) {
+  var P = def.pts, n = P.length, i, area = 0;
+  for (i = 0; i < n; i++) { var pa = P[i], pb = P[(i + 1) % n]; area += pa.r * pb.y - pb.r * pa.y; }
+  var orient = area > 0 ? 1 : -1, segN = [], nStart = [], nEnd = [];
+  for (i = 0; i < n; i++) {
+    var a0 = P[i], b0 = P[(i + 1) % n], tx = b0.r - a0.r, ty = b0.y - a0.y, tl = Math.sqrt(tx * tx + ty * ty) || 1;
+    segN.push({ r: orient * ty / tl, y: -orient * tx / tl });
+  }
+  for (i = 0; i < n; i++) {                     /* smooth across gentle bends (fillets), keep real corners sharp */
+    var pi = (i - 1 + n) % n, prev = segN[pi], cur = segN[i];
+    if (prev.r * cur.r + prev.y * cur.y > 0.82) {
+      var mr = prev.r + cur.r, my = prev.y + cur.y, ml = Math.sqrt(mr * mr + my * my);
+      nStart[i] = nEnd[pi] = { r: mr / ml, y: my / ml };
+    } else { nStart[i] = cur; nEnd[pi] = prev; }
+  }
+  function lathe(kind) {
+    var RS = 192, pos = [], nor = [], idx = [];
+    for (var i = 0; i < n; i++) {
+      if (P[i].kind !== kind) continue;
+      var p0 = P[i], p1 = P[(i + 1) % n], ns = nStart[i], ne = nEnd[i], base = pos.length / 3;
+      for (var j = 0; j <= RS; j++) {
+        var ang = j / RS * TAU, c = Math.cos(ang), s = Math.sin(ang);
+        pos.push(p0.r * c, p0.y, p0.r * s); nor.push(ns.r * c, ns.y, ns.r * s);
+        pos.push(p1.r * c, p1.y, p1.r * s); nor.push(ne.r * c, ne.y, ne.r * s);
+      }
+      for (j = 0; j < RS; j++) {
+        var a = base + 2 * j, b = a + 1, d = a + 2, e = a + 3;
+        if (orient > 0) idx.push(a, b, d, b, e, d); else idx.push(a, d, b, b, d, e);
+      }
+    }
+    var g = new T3.BufferGeometry();
+    g.setAttribute('position', new T3.Float32BufferAttribute(pos, 3));
+    g.setAttribute('normal', new T3.Float32BufferAttribute(nor, 3));
+    g.setIndex(new T3.BufferAttribute(new Uint32Array(idx), 1));
+    return g;
+  }
+  /* A plate: the emblem half as a slab. Its two faces carry the team colour. Its rim is dark where the emblem is cut away
+     on its centre line and coloured where the emblem is solid there, so that a plate seen edge-on, sitting in front of
+     the one seen face-on, stands in for the emblem's own middle column. (Gen.G's slit runs the full height: all dark.) */
+  function slab() {
+    var sg = new T3.ShapeGeometry(new T3.Shape(P.map(function (p) { return new T3.Vector2(p.r, p.y); })));
+    var sp = sg.attributes.position.array, si = sg.index.array, h = def.thick / 2, pos = [], nor = [], k, c, v;
+    for (k = 0; k < si.length; k += 3) for (c = 0; c < 3; c++) { v = si[k + c] * 3; pos.push(sp[v], sp[v + 1], h); nor.push(0, 0, 1); }
+    for (k = 0; k < si.length; k += 3) for (c = 2; c >= 0; c--) { v = si[k + c] * 3; pos.push(sp[v], sp[v + 1], -h); nor.push(0, 0, -1); }
+    var nFace = pos.length / 3;
+    function rim(solid) {
+      for (var i = 0; i < n; i++) {
+        if (P[i].kind === 'a' || !!P[i].solid !== solid) continue;     /* walls on the axis would only face the opposite plate */
+        var a = P[i], b = P[(i + 1) % n], N = segN[i];
+        var quad = orient > 0 ? [a, -h, b, -h, b, h, a, -h, b, h, a, h] : [a, -h, b, h, b, -h, a, -h, a, h, b, h];
+        for (var j = 0; j < 12; j += 2) { pos.push(quad[j].r, quad[j].y, quad[j + 1]); nor.push(N.r, N.y, 0); }
+      }
+    }
+    rim(false); var nDark = pos.length / 3 - nFace;
+    rim(true); var nSolid = pos.length / 3 - nFace - nDark;
+    var g = new T3.BufferGeometry();
+    g.setAttribute('position', new T3.Float32BufferAttribute(pos, 3));
+    g.setAttribute('normal', new T3.Float32BufferAttribute(nor, 3));
+    g.addGroup(0, nFace, 0);
+    if (nDark) g.addGroup(nFace, nDark, 1);
+    if (nSolid) g.addGroup(nFace + nDark, nSolid, 0);
+    return g;
+  }
+  var plateGeo = slab();
 
-var plates = new T3.Group(); spin.add(plates);
-for (i = 0; i < 4; i++) {
-  var plate = new T3.Mesh(plateGeo, plateMats);
-  plate.rotation.y = i * HALF_PI; plate.castShadow = true; plate.renderOrder = 1;
-  plates.add(plate);
+  /* Every top has two looks, switched by the 水晶 button: 'crystal' is clear glass around polished metal plates;
+     'frost' is a matte tinted body around flat-coloured plates, with no reflections. Each look keeps its own
+     pair of plate materials [face, rim] and its own shell group. */
+  var rimColor = new T3.Color(def.rim[0], def.rim[1], def.rim[2]), outerGeo = lathe('o');
+  var group = new T3.Group(), plates = new T3.Group(), shell;
+  var looks = {
+    crystal: { shells: new T3.Group(), mats: [
+      new T3.MeshStandardMaterial({ color: lin(def.color), metalness: 1, roughness: 0.32, transparent: true }),
+      new T3.MeshStandardMaterial({ color: lin(0x1c1810), metalness: 0.4, roughness: 0.55, envMapIntensity: 0.5, transparent: true })
+    ] },
+    frost: { shells: new T3.Group(), mats: [
+      new T3.MeshStandardMaterial({ color: lin(def.color), metalness: 0, roughness: 0.8, emissive: lin(def.color), emissiveIntensity: 0.22, envMapIntensity: 1.2, transparent: true }),
+      new T3.MeshStandardMaterial({ color: lin(0x1c1810), metalness: 0, roughness: 0.85, envMapIntensity: 0.4, transparent: true })
+    ] }
+  };
+  shell = new T3.Mesh(outerGeo, crystalMaterial(0.8, 0.12, 0.012, rimColor)); shell.renderOrder = 2; looks.crystal.shells.add(shell);
+  shell = new T3.Mesh(lathe('i'), crystalMaterial(0.25, 0.05, 0.004, rimColor)); shell.renderOrder = 2; looks.crystal.shells.add(shell);
+  shell = new T3.Mesh(outerGeo, frostMaterial(lin(def.tint), 0.34)); shell.renderOrder = 2; looks.frost.shells.add(shell);
+  for (i = 0; i < 4; i++) {
+    var plate = new T3.Mesh(plateGeo, looks.crystal.mats);
+    plate.rotation.y = i * HALF_PI; plate.castShadow = true; plate.renderOrder = 1;
+    plates.add(plate);
+  }
+  group.add(looks.crystal.shells, looks.frost.shells, plates); group.visible = false; spin.add(group);
+  def.group = group; def.plates = plates;
+  def.setLook = function (name) {
+    if (!looks[name]) name = 'crystal';
+    var L = looks[name];
+    def.look = name; def.mats = L.mats; def.shells = L.shells;
+    looks.crystal.shells.visible = name === 'crystal'; looks.frost.shells.visible = name === 'frost';
+    plates.children.forEach(function (m) { m.material = L.mats; });
+  };
+  def.setLook(def.look);
+  return def;
 }
+var tops = { geng: makeTop(gengDef()), tes: makeTop(tesDef()) }, cur = tops.geng;
 
+/* ---------- 4. Stage: floor, shadow, light, camera ---------- */
 var floorG = new T3.Group(); turntable.add(floorG);
 var floor = new T3.Mesh(new T3.CircleGeometry(12, 96), new T3.ShaderMaterial({
   extensions: { derivatives: true },
@@ -347,7 +471,7 @@ var floor = new T3.Mesh(new T3.CircleGeometry(12, 96), new T3.ShaderMaterial({
     '  float d2 = abs(mod(ang + s2 * 0.5, s2) - s2 * 0.5) * r;',
     '  float t1 = (1.0 - smoothstep(0.004, 0.004 + aa, d1)) * step(1.78, r) * step(r, 1.86);',
     '  float t2 = (1.0 - smoothstep(0.007, 0.007 + aa, d2)) * step(1.78, r) * step(r, 2.0);',
-    '  float comet = exp(-mod((uPhase - ang) * uDir, 3.14159265) * 2.4) * uSpeed;',
+    '  float comet = exp(-mod((uPhase - ang) * uDir, 3.14159265) * 2.4) * uSpeed;',   /* two lights run round the ring the way the top turns */
     '  col += uGold * (ring * (0.5 + 2.6 * comet) + t1 * 0.4 + t2 * 0.9) * exp(-r * r / 14.0) * (1.0 + 1.6 * uGlow);',
     '  col += uGold * (0.16 * uGlow + 0.45 * comet) * exp(-(r - 1.7) * (r - 1.7) / 0.012);',
     '  gl_FragColor = vec4(col, 1.0);',
@@ -367,45 +491,61 @@ key.shadow.camera.near = 4; key.shadow.camera.far = 14; key.shadow.bias = -0.000
 scene.add(key, key.target);
 
 var camera = new T3.PerspectiveCamera(24, 1, 0.1, 100);
-var TARGET = new T3.Vector3(0, HEIGHT * 0.5 - 0.13, 0);
+var TARGET = new T3.Vector3(0, 0.7, 0);
 
 /* ---------- 5. State ---------- */
 var OMEGA_MAX = TAU * 8;
 function sliderToOmega(v) { return OMEGA_MAX * Math.pow(v / 100, 2.2); }
 
 var st = {
-  omega: 0, omegaT: 0, motor: 0, boost: 0, dir: 1, ringPh: 0, phi: 0, psi: 0, tau: 0, alignTo: null, alignT: 0.35, frozen: false,
-  nut: 0, nutPh: 0, slide: 0, slideV: 0, pulse: 0, t: 0,
-  az: 0, azVel: 0, el: 13 * DEG, elT: null, zoom: 1, baseDist: 8
+  omega: 0,                 /* signed spin, rad/s: positive turns the front of the top to the viewer's right */
+  dir: 1, hold: false, phi: 0, psi: 0, tau: 0, alignTo: null, alignT: 0.35, frozen: false,
+  nut: 0, nutPh: 0, slide: 0, slideV: 0, pulse: 0, ringPh: 0, t: 0,
+  az: 0, azVel: 0, el: 13 * DEG, elT: null, zoom: 1, baseDist: 8, fitDist: 8, camY: 0.7
 };
 
-function setSpeed(v) {
-  st.omegaT = sliderToOmega(v);
-  if (st.omegaT > 0) leaveGlide();
-  $('speed').setAttribute('aria-valuetext', v <= 0 ? '停' : (st.omegaT / TAU).toFixed(2) + ' 圈每秒');
+function fit() {
+  var tanV = Math.tan(camera.fov * DEG / 2);
+  st.fitDist = Math.max((cur.height / 2 + 0.86) / tanV, (cur.radius + 0.42) / (tanV * camera.aspect));
+}
+function setTeam(id, instant) {
+  if (!tops[id]) return;
+  cur.group.visible = false; cur = tops[id]; cur.group.visible = true;
+  stageEl.setAttribute('data-team', id);
+  $('team').textContent = cur.name;
+  $('markG').toggleAttribute('hidden', id !== 'geng'); $('markT').toggleAttribute('hidden', id !== 'tes');
+  ['geng', 'tes'].forEach(function (k) { $('t-' + k).setAttribute('aria-pressed', String(k === id)); });
+  floor.material.uniforms.uGold.value.copy(lin(cur.ring));
+  $('glass').setAttribute('aria-pressed', String(cur.look === 'crystal'));
+  fit();
+  if (instant) { st.baseDist = st.fitDist; st.camY = cur.height * 0.5 - 0.13; }
+  try { localStorage.setItem('geng-top-team', id); } catch (err) {}
 }
 
 /* ---------- 5b. The whip: a rope simulated on a 2D overlay and lashed across the top's silhouette ---------- */
 var fx = $('fx'), ctx = fx.getContext('2d'), W = 1, H = 1, fxDirty = false;
-var SHOULDER = (maxY - 49.74) / S;      /* height where the wall turns into the cone */
 var P3 = new T3.Vector3(), tmpS = {};
 function toScreen(x, y, z, o) { P3.set(x, y, z).project(camera); o.x = (P3.x * 0.5 + 0.5) * W; o.y = (0.5 - P3.y * 0.5) * H; return o; }
 
-/* the top as the viewer sees it: lid, wall, cone, tip - in CSS pixels */
-var sil = { p: [{}, {}, {}, {}, {}, {}], x0: 0, x1: 0, yTop: 0, yShoulder: 0, yTip: 0, w: 1, h: 1, cx: 0, cy: 0 };
+/* the selected top as the viewer sees it, in CSS pixels; the "body" is its widest stretch, where a lash should land */
+var sil = { p: [], n: 0, x0: 0, x1: 0, yTop: 0, yTip: 0, yBodyTop: 0, yBodyBot: 0, w: 1, h: 1, cx: 0, cy: 0 };
 function updateSilhouette() {
-  var s = st.slide, p = sil.p;
-  toScreen(-1 + s, HEIGHT, 0, p[0]); toScreen(1 + s, HEIGHT, 0, p[1]); toScreen(1 + s, SHOULDER, 0, p[2]);
-  toScreen(0.1 + s, 0, 0, p[3]); toScreen(-0.1 + s, 0, 0, p[4]); toScreen(-1 + s, SHOULDER, 0, p[5]);
-  toScreen(s, HEIGHT, -1, tmpS);
-  sil.yTop = Math.min(p[0].y, tmpS.y); p[0].y = p[1].y = sil.yTop;
-  sil.x0 = p[0].x; sil.x1 = p[1].x; sil.w = Math.max(40, sil.x1 - sil.x0);
-  sil.yShoulder = p[2].y; sil.yTip = p[3].y; sil.h = Math.max(40, sil.yTip - sil.yTop);
-  sil.cx = (sil.x0 + sil.x1) / 2; sil.cy = (sil.yTop + sil.yTip) / 2;
+  var s = st.slide, src = cur.sil, i, o, lo = Infinity, hi = -Infinity, top = Infinity, bot = -Infinity;
+  sil.n = src.length;
+  for (i = 0; i < src.length; i++) toScreen(src[i][0] + s, src[i][1], 0, sil.p[i] || (sil.p[i] = {}));
+  if (cur.lid) {                                /* seen from above, a flat lid shows its far rim above the near one */
+    toScreen(s, cur.height, -cur.radius, tmpS);
+    if (tmpS.y < sil.p[0].y) sil.p[0].y = sil.p[1].y = tmpS.y;
+  }
+  for (i = 0; i < sil.n; i++) { o = sil.p[i]; lo = Math.min(lo, o.x); hi = Math.max(hi, o.x); top = Math.min(top, o.y); bot = Math.max(bot, o.y); }
+  sil.x0 = lo; sil.x1 = hi; sil.w = Math.max(40, hi - lo); sil.yTop = top; sil.yTip = bot; sil.h = Math.max(40, bot - top);
+  sil.yBodyTop = cur.lid ? top : toScreen(cur.radius + s, cur.body[1], 0, tmpS).y;
+  sil.yBodyBot = toScreen(cur.radius + s, cur.body[0], 0, tmpS).y;
+  sil.cx = (lo + hi) / 2; sil.cy = (top + bot) / 2;
 }
 function inSil(x, y, k) {
   var p = sil.p, cx = sil.cx, cy = sil.cy, inside = false;
-  for (var i = 0, j = 5; i < 6; j = i++) {
+  for (var i = 0, j = sil.n - 1; i < sil.n; j = i++) {
     var xi = cx + (p[i].x - cx) * k, yi = cy + (p[i].y - cy) * k, xj = cx + (p[j].x - cx) * k, yj = cy + (p[j].y - cy) * k;
     if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
   }
@@ -424,7 +564,7 @@ function floorRadiusAt(x, y) {
 /* press on the top, or in the air beside its body: whip. Press the turntable or anywhere else: turn the view. */
 function zoneAt(x, y) {
   if (inSil(x, y, 1.14)) return 'whip';
-  if (y > sil.yTop - 0.12 * sil.h && y < sil.yShoulder + 0.08 * sil.h && x > sil.x0 - sil.w && x < sil.x1 + sil.w) {
+  if (y > sil.yBodyTop - 0.12 * sil.h && y < sil.yBodyBot + 0.08 * sil.h && x > sil.x0 - sil.w && x < sil.x1 + sil.w) {
     var fr = floorRadiusAt(x, y);
     if (fr === null || fr > 2.15) return 'whip';
   }
@@ -460,7 +600,7 @@ function audioInit() {
     if (actx.state === 'suspended') actx.resume();
   } catch (err) { actx = null; }
 }
-function crack(s, brake) {
+function crack(s, brake) {                      /* a lash against the spin lands duller */
   if (!soundOn || !actx || actx.state !== 'running') return;
   var t = actx.currentTime;
   var a = actx.createBufferSource(); a.buffer = noiseBuf; a.playbackRate.value = 1.4;
@@ -484,7 +624,6 @@ function leaveGlide() {
   if (st.alignTo === null) return;
   st.alignTo = null;
   if (Math.abs(st.omega) > 0.01) st.dir = st.omega < 0 ? -1 : 1;
-  st.motor = Math.abs(st.omega); st.boost = 0;
 }
 /* dir is the way the cord travels across the front of the top: +1 left to right, -1 right to left.
    The front surface is dragged along with it, so the two directions spin the top opposite ways:
@@ -492,11 +631,11 @@ function leaveGlide() {
 function hit(s, dir, x, y) {
   rope.lastHit = st.t; rope.lastDir = dir; rope.hits++;
   leaveGlide();
-  var w = st.dir * st.motor + st.boost, brake = w * dir < -0.5;
+  var w = st.omega, brake = w * dir < -0.5;
   var gain = (2.6 + 6.4 * s) * (w * dir > 0 ? Math.max(0.05, 1 - Math.pow(Math.min(1, Math.abs(w) / OMEGA_MAX), 2)) : 1);
   w = Math.max(-OMEGA_MAX, Math.min(OMEGA_MAX, w + dir * gain));
-  if (w * st.dir < 0) { st.dir = -st.dir; st.motor = Math.min(st.motor, Math.abs(w)); }     /* into reverse: the motor follows */
-  st.boost = w - st.dir * st.motor; st.omega = w;
+  st.omega = w;
+  if (Math.abs(w) > 0.01) st.dir = w < 0 ? -1 : 1;
   if (!reduceMotion) {
     st.nut = Math.min(4 * DEG, st.nut + (0.9 + 1.8 * s) * DEG); st.nutPh = dir > 0 ? 0 : Math.PI;
     st.slideV += dir * (0.5 + 0.8 * s);
@@ -561,7 +700,7 @@ function ropeStep(dt) {
       any = true;
       var v = (x[i] - ox[i]) / h;
       if (Math.abs(v) > Math.abs(best)) { best = v; bx = x[i]; by = y[i]; }
-      ox[i] = x[i] - (x[i] - ox[i]) * 0.95; oy[i] = y[i] - (y[i] - oy[i]) * 0.95;     /* the cord drags on the surface */
+      ox[i] = x[i] - (x[i] - ox[i]) * 0.95; oy[i] = y[i] - (y[i] - oy[i]) * 0.95;   /* the cord drags on the surface */
     }
   }
   rope.hx = nx; rope.hy = ny;
@@ -575,12 +714,13 @@ function ropeStep(dt) {
   }
   rope.inside = any;
 }
-/* a lash thrown for the visitor: the two buttons, the arrow keys, the space bar, and one demonstration after the page opens */
+/* a lash thrown for the visitor: the two buttons, the arrow keys, the space bar, and the opening demonstration */
 function autoLash(d) {
+  var mid = (sil.yBodyTop + sil.yBodyBot) / 2;
   if (rope.on && rope.held && !rope.auto) return;   /* the visitor is holding the whip */
-  if (rope.auto && !rope.hits) hit(0.6, rope.auto.x1 > rope.auto.x0 ? 1 : -1, sil.cx, (sil.yTop + sil.yShoulder) / 2);
+  if (rope.auto && !rope.hits) hit(0.6, rope.auto.x1 > rope.auto.x0 ? 1 : -1, sil.cx, mid);
   d = d || st.dir;                                  /* no direction given: lash the way it is already turning */
-  var y = (sil.yTop + sil.yShoulder) / 2 + Math.min(64, Math.max(34, sil.w * 0.16)) * 0.7;   /* cord, not stick, crosses mid-body */
+  var y = mid + Math.min(64, Math.max(34, sil.w * 0.16)) * 0.7;   /* so the cord, not the stick, crosses mid-body */
   var x0 = d > 0 ? sil.x0 - sil.w * 0.5 : sil.x1 + sil.w * 0.5, x1 = d > 0 ? sil.x1 + sil.w * 0.3 : sil.x0 - sil.w * 0.3;
   ropeStart(x0, y, -d);
   rope.auto = { t: 0, dur: 0.26, x0: x0, y0: y, x1: x1, y1: y + sil.h * 0.05, lift: sil.h * 0.06 };
@@ -595,7 +735,7 @@ function fxStep(dt) {
       var u = Math.min(1, a.t / a.dur), e = u * u * (3 - 2 * u);
       rope.tx = a.x0 + (a.x1 - a.x0) * e; rope.ty = a.y0 + (a.y1 - a.y0) * e - Math.sin(u * Math.PI) * a.lift;
       if (a.t > a.dur + 0.3) {
-        if (!rope.hits) hit(0.6, a.x1 > a.x0 ? 1 : -1, sil.cx, (sil.yTop + sil.yShoulder) / 2);
+        if (!rope.hits) hit(0.6, a.x1 > a.x0 ? 1 : -1, sil.cx, (sil.yBodyTop + sil.yBodyBot) / 2);
         rope.auto = null; rope.held = false;
       }
     }
@@ -648,7 +788,8 @@ function drawFx() {
   for (i = 0; i < sparks.length; i++) {
     var s = sparks[i], k = 1 - s.life / s.max;
     ctx.globalAlpha = k;
-    stroke(s.x, s.y, s.x - s.vx * 0.02, s.y - s.vy * 0.02, s.cool ? 'rgb(' + Math.round(165 + 60 * k) + ',' + Math.round(205 + 40 * k) + ',255)' : 'rgb(255,' + Math.round(170 + 70 * k) + ',' + Math.round(70 + 120 * k) + ')', 1.2 + 1.2 * k);
+    stroke(s.x, s.y, s.x - s.vx * 0.02, s.y - s.vy * 0.02,
+      s.cool ? 'rgb(' + Math.round(165 + 60 * k) + ',' + Math.round(205 + 40 * k) + ',255)' : 'rgb(255,' + Math.round(170 + 70 * k) + ',' + Math.round(70 + 120 * k) + ')', 1.2 + 1.2 * k);
   }
   for (i = 0; i < flashes.length; i++) {
     var fl = flashes[i], q1 = 1 - fl.life / fl.max, r = fl.r * (0.55 + 0.75 * (1 - q1));
@@ -663,13 +804,25 @@ function drawFx() {
 }
 
 /* ---------- 6. Controls ---------- */
-$('speed').addEventListener('input', function (e) { setSpeed(+e.target.value); });
+var userActed = false, speedEl = $('speed');
+['geng', 'tes'].forEach(function (k) { $('t-' + k).addEventListener('click', function () { userActed = true; setTeam(k); }); });
+/* the slider shows the speed and can also set it: while it is held the top keeps that speed, let go and friction takes over */
+speedEl.addEventListener('input', function () { userActed = true; leaveGlide(); st.omega = st.dir * sliderToOmega(+speedEl.value); });
+speedEl.addEventListener('pointerdown', function () { st.hold = true; });
+speedEl.addEventListener('change', function () { st.hold = false; });
+['pointerup', 'pointercancel'].forEach(function (type) { window.addEventListener(type, function () { st.hold = false; }); });
 $('side').addEventListener('click', function () {
   var on = $('side').getAttribute('aria-pressed') !== 'true';
   st.elT = on ? 0 : 13 * DEG; st.azVel = 0;
   $('side').setAttribute('aria-pressed', String(on));
 });
-
+/* 水晶 on: clear crystal shell and polished plates; off: the matte solid-colour look. Remembered per top. */
+$('glass').addEventListener('click', function () {
+  userActed = true;
+  cur.setLook(cur.look === 'crystal' ? 'frost' : 'crystal');
+  $('glass').setAttribute('aria-pressed', String(cur.look === 'crystal'));
+  try { localStorage.setItem('geng-top-look-' + cur.id, cur.look); } catch (err) {}
+});
 $('whipL').addEventListener('click', function () { userActed = true; audioInit(); autoLash(-1); });
 $('whipR').addEventListener('click', function () { userActed = true; audioInit(); autoLash(1); });
 $('snd').addEventListener('click', function () { setSound(!soundOn); if (soundOn) audioInit(); });
@@ -683,7 +836,7 @@ window.addEventListener('keydown', function (e) {
 
 /* Pointer: press on the top (or beside its body) and you are holding the whip; press anywhere else and you turn the view. */
 var WHIP_CURSOR = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'28\' height=\'28\' viewBox=\'0 0 28 28\'%3E%3Cg fill=\'none\' stroke-linecap=\'round\'%3E%3Cpath d=\'M5 23L14 12\' stroke=\'%23000\' stroke-width=\'5.5\'/%3E%3Cpath d=\'M14 12C18 4 26 6 22 12C20 15 24 17 25 14\' stroke=\'%23000\' stroke-width=\'3.4\'/%3E%3Cpath d=\'M5 23L14 12\' stroke=\'%23e6c96e\' stroke-width=\'3\'/%3E%3Cpath d=\'M14 12C18 4 26 6 22 12C20 15 24 17 25 14\' stroke=\'%23f2ebd9\' stroke-width=\'1.5\'/%3E%3C/g%3E%3C/svg%3E") 5 23, crosshair';
-var pointers = {}, pinch = 0, lastMove = 0, drag = null, userActed = false;
+var pointers = {}, pinch = 0, lastMove = 0, drag = null;
 function localXY(e) { var r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
 function idleCursor(e) { var p = localXY(e); canvas.style.cursor = zoneAt(p.x, p.y) === 'whip' ? WHIP_CURSOR : 'grab'; }
 canvas.addEventListener('pointerdown', function (e) {
@@ -740,8 +893,7 @@ function resize() {
   var dpr = Math.min(window.devicePixelRatio || 1, 2);
   W = w; H = h; fx.width = Math.round(w * dpr); fx.height = Math.round(h * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   camera.aspect = w / h; camera.updateProjectionMatrix();
-  var tanV = Math.tan(camera.fov * DEG / 2);
-  st.baseDist = Math.max(1.72 / tanV, 1.42 / (tanV * camera.aspect));
+  fit();
 }
 if (window.ResizeObserver) new ResizeObserver(resize).observe(stageEl);
 window.addEventListener('resize', resize);
@@ -750,7 +902,7 @@ resize();
 /* ---------- 7. Frame ---------- */
 function platePass(kind, weight) {
   for (var k = 0; k < 2; k++) {
-    var m = plateMats[k];
+    var m = cur.mats[k];
     if (kind === 'normal') { m.opacity = 1; m.blending = T3.NormalBlending; m.depthFunc = T3.LessEqualDepth; m.depthWrite = true; m.colorWrite = true; }
     else if (kind === 'none') { m.depthWrite = false; m.colorWrite = false; }
     else if (kind === 'depth') { m.opacity = weight; m.blending = T3.AdditiveBlending; m.depthFunc = T3.LessEqualDepth; m.depthWrite = true; m.colorWrite = false; }
@@ -771,7 +923,7 @@ function draw(phiFrom, phiTo) {
   }
   /* motion blur: average K sub-frames of the plates, additively, each with its own depth */
   spin.rotation.y = (phiFrom + phiTo) / 2;
-  shells.visible = false; platePass('none');
+  cur.shells.visible = false; platePass('none');
   renderer.render(scene, camera);
   floorG.visible = false; shadowCatcher.visible = false;
   for (var k = 0; k < K; k++) {
@@ -780,10 +932,10 @@ function draw(phiFrom, phiTo) {
     platePass('depth', 1 / K); renderer.render(scene, camera);
     platePass('add', 1 / K); renderer.render(scene, camera);
   }
-  plates.visible = false; shells.visible = true;
+  cur.plates.visible = false; cur.shells.visible = true;
   renderer.clearDepth();
   renderer.render(scene, camera);
-  plates.visible = true; floorG.visible = true; shadowCatcher.visible = true;
+  cur.plates.visible = true; floorG.visible = true; shadowCatcher.visible = true;
   platePass('normal');
 }
 
@@ -795,22 +947,18 @@ function step(dt) {
       st.phi += (st.alignTo - st.phi) * (1 - Math.exp(-dt / st.alignT));
       st.omega = (st.alignTo - st.phi) / st.alignT;
     } else {
-      /* the slider is a motor holding a cruising speed in whichever direction the top is turning;
-         a lash adds or takes away spin, and friction wears that difference off */
-      st.motor += (st.omegaT - st.motor) * (1 - Math.exp(-dt / 0.45));
-      if (st.boost !== 0) {
-        var left = Math.abs(st.boost) - (0.25 * Math.abs(st.boost) + 0.5) * dt;
-        st.boost = left > 0 ? (st.boost > 0 ? left : -left) : 0;
+      /* nothing drives the top: friction always winds it down, all the way to a stop, unless the slider is being held */
+      if (!st.hold) {
+        var left = Math.abs(st.omega) - (0.25 * Math.abs(st.omega) + 0.5) * dt;
+        st.omega = left > 0 ? (st.omega > 0 ? left : -left) : 0;
       }
-      st.omega = st.dir * st.motor + st.boost;
       st.phi += st.omega * dt;
-      if (st.omegaT === 0 && Math.abs(st.omega) < 1.2) {
-        var way = st.omega < 0 ? -1 : 1, slow = Math.abs(st.omega);
+      if (!st.hold && Math.abs(st.omega) < 1.2) {
+        var slow = Math.abs(st.omega), way = slow > 0.01 ? (st.omega < 0 ? -1 : 1) : st.dir;
         st.alignTo = Math.round((st.phi + way * slow * 0.45 + st.az) / HALF_PI) * HALF_PI - st.az;
         if ((st.alignTo - st.phi) * way < 0 && slow > 0.3) st.alignTo += way * HALF_PI;
         st.alignT = slow > 0.3 ? Math.min(1.2, Math.max(0.25, Math.abs(st.alignTo - st.phi) / slow)) : 0.35;
-        if (slow > 0.01) st.dir = way;
-        st.motor = st.boost = 0;
+        st.dir = way;
       }
     }
   }
@@ -828,10 +976,13 @@ function step(dt) {
   tilt.quaternion.setFromUnitVectors(Y_AXIS, axisDir);
   tilt.position.set(st.slide * ca, 0, st.slide * sa);
 
-  /* view */
+  /* view: the camera eases to frame whichever top is on stage */
   if (!Object.keys(pointers).length) { st.az += st.azVel * dt; st.azVel *= Math.exp(-dt * 4); }
   if (st.elT !== null) { st.el += (st.elT - st.el) * (1 - Math.exp(-dt * 7)); if (Math.abs(st.elT - st.el) < 1e-4) { st.el = st.elT; st.elT = null; } }
+  var ease = 1 - Math.exp(-dt * 8);
+  st.baseDist += (st.fitDist - st.baseDist) * ease; st.camY += (cur.height * 0.5 - 0.13 - st.camY) * ease;
   turntable.rotation.y = st.az;
+  TARGET.y = st.camY;
   var dist = st.baseDist * st.zoom;
   camera.position.set(0, TARGET.y + dist * Math.sin(st.el), dist * Math.cos(st.el));
   camera.lookAt(TARGET);
@@ -845,41 +996,51 @@ function step(dt) {
 
 function tick(dt) { var phiFrom = step(dt); fxStep(dt); return phiFrom; }
 
-var last = 0, t0 = 0, demoDone = false, gaugeV = -1, gaugeTxt = '', gaugeDir = '';
+var last = 0, t0 = 0, demoN = 0, gaugeV = -1, gaugeTxt = '', gaugeDir = '';
 function frame(now) {
   requestAnimationFrame(frame);
   var dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016); last = now;
   if (!t0) t0 = now;
-  if (!demoDone && now - t0 > 1700) {               /* show once what the whip does, unless the visitor got there first */
-    demoDone = true;
+  if (demoN < 2 && now - t0 > 700 + 750 * demoN) {   /* the page opens at rest; two lashes set the top going, unless the visitor got there first */
+    demoN++;
     if (!userActed && !reduceMotion && !st.frozen && q.get('demo') !== '0') autoLash(1);
   }
   var phiFrom = tick(dt);
   draw(phiFrom, st.phi);
   drawFx();
-  /* speedometer: track fill and readout follow the actual speed, the little orbit icon shows which way it turns */
-  var av = Math.abs(st.omega), v = Math.round(1000 * Math.pow(Math.min(1, av / OMEGA_MAX), 1 / 2.2)) / 10, rps = av / TAU;
+  /* speedometer: thumb, track fill and readout follow the actual speed; the little orbit icon shows which way it turns */
+  var av = Math.abs(st.omega), v = Math.round(200 * Math.pow(Math.min(1, av / OMEGA_MAX), 1 / 2.2)) / 2, rps = av / TAU;
   var txt = rps < 0.02 ? '停' : (rps < 1 ? rps.toFixed(2) : rps.toFixed(1)) + ' 圈/秒';
   var ds = (rps < 0.02 ? 'x' : 'o') + ((rps < 0.02 ? st.dir : st.omega) < 0 ? 'L' : 'R');
   if (ds !== gaugeDir) { gaugeDir = ds; $('dir').style.transform = ds.charAt(1) === 'L' ? 'scaleX(-1)' : ''; $('dir').style.opacity = ds.charAt(0) === 'x' ? 0.35 : 1; }
-  if (v !== gaugeV) { gaugeV = v; $('speed').style.setProperty('--live', v + '%'); }
-  if (txt !== gaugeTxt) { gaugeTxt = txt; $('rps').textContent = txt; }
+  if (v !== gaugeV) { gaugeV = v; speedEl.style.setProperty('--live', v + '%'); if (!st.hold) speedEl.value = v; }
+  if (txt !== gaugeTxt) { gaugeTxt = txt; $('rps').textContent = txt; speedEl.setAttribute('aria-valuetext', txt); }
 }
 
 /* ---------- 8. Start ---------- */
-var startSpeed = qn('speed', reduceMotion ? 14 : 25);
-$('speed').value = startSpeed; setSpeed(startSpeed);
-st.az = qn('az', 0) * DEG; st.el = qn('el', 13) * DEG; st.zoom = qn('zoom', 1);
-st.phi = -st.az;                        /* first frame: a plate squarely faces the viewer, then it spins up */
-if (q.get('phi') !== null) { st.frozen = true; st.phi = qn('phi', 0) * DEG - st.az; }
+var startTeam = q.get('team');
+if (!tops[startTeam]) { try { startTeam = localStorage.getItem('geng-top-team'); } catch (err) {} }
+if (!tops[startTeam]) startTeam = 'geng';
+['geng', 'tes'].forEach(function (k) {             /* each top remembers whether its crystal was on */
+  var saved = null;
+  try { saved = localStorage.getItem('geng-top-look-' + k); } catch (err) {}
+  if (saved) tops[k].setLook(saved);
+});
+if (q.get('look')) tops[startTeam].setLook(q.get('look'));
+setTeam(startTeam, true);
 setSound(soundOn);
+st.az = qn('az', 0) * DEG; st.el = qn('el', 13) * DEG; st.zoom = qn('zoom', 1);
+st.phi = -st.az;                        /* the page opens at rest with a plate squarely facing the viewer */
+if (q.get('phi') !== null) { st.frozen = true; st.phi = qn('phi', 0) * DEG - st.az; }
+if (qn('speed', 0) > 0) st.omega = sliderToOmega(qn('speed', 0));
 tick(1e-3);                                         /* places the camera and measures the silhouette */
-/* test hooks: ?hits=N lands N lashes, ?auto=1 throws one, ?ff=N fast-forwards N frames, ?debug=1 exposes the state */
-var nHits = qn('hits', 0), nAuto = qn('auto', 0);    /* negative values lash to the left */
+/* test hooks: ?team=tes, ?speed=N starts it spinning, ?hits=N lands N lashes, ?auto=1 throws one (negative: to the left),
+   ?ff=N fast-forwards N frames, ?debug=1 exposes the state */
+var nHits = qn('hits', 0), nAuto = qn('auto', 0), i;
 for (i = Math.abs(nHits); i > 0; i--) hit(0.8, nHits < 0 ? -1 : 1, sil.cx, sil.cy);
-if (nAuto) { demoDone = true; autoLash(nAuto < 0 ? -1 : 1); }
+if (nAuto) { demoN = 2; autoLash(nAuto < 0 ? -1 : 1); }
 for (i = qn('ff', 0); i > 0; i--) tick(1 / 60);
-if (q.get('debug') === '1') window.__top = { tick: tick, st: st, rope: rope, sil: sil, zoneAt: zoneAt };
+if (q.get('debug') === '1') window.__top = { tick: tick, st: st, rope: rope, sil: sil, zoneAt: zoneAt, setTeam: setTeam };
 $('side').setAttribute('aria-pressed', String(Math.abs(st.el) < 0.012));
 requestAnimationFrame(frame);
 })();
